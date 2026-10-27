@@ -1,40 +1,52 @@
 ---
+// Rodapé. No computador: colunas abertas. No celular: marca e contato em cima, as listas viram
+// sanfonas fechadas (eram 20 links em fila, uma tela e meia de rolagem) e o legal fica compacto.
+import Simbolo from './Simbolo.astro';
 import type { Categoria } from '../lib/loja';
 import { LOJA } from '../lib/loja';
 interface Props { categorias: Categoria[]; }
 const { categorias } = Astro.props;
+const grupos = [
+  { titulo: 'Comprar', links: [{ href: '/produtos', nome: 'Todos os produtos' }, ...categorias.map(c => ({ href: `/categoria/${c.slug}`, nome: c.nome }))] },
+  { titulo: 'Ajuda', links: [
+    { href: '/conta', nome: 'Minha conta' }, { href: '/pedido', nome: 'Rastrear pedido' }, { href: '/favoritos', nome: 'Favoritos' },
+    { href: '/frete-e-prazos', nome: 'Frete e prazos' }, { href: '/trocas-e-devolucoes', nome: 'Trocas e devoluções' }, { href: '/contato', nome: 'Fale com a gente' },
+  ] },
+  { titulo: 'Institucional', links: [
+    { href: '/sobre', nome: 'Sobre a Geek Aura' }, { href: '/privacidade', nome: 'Política de privacidade' }, { href: '/termos', nome: 'Termos de uso' },
+  ] },
+];
 ---
 <footer class="rodape">
   <div class="recipiente rodape-colunas">
-    <div>
+    <div class="rodape-marca">
       <span class="marca-nome"><span class="geek">GEEK</span> <span class="aura">AURA</span></span>
       <p>Blocos de montar, jogos de cartas e colecionáveis.</p>
-      <p>Atendimento: <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a></p>
-      <p>WhatsApp: <a href={LOJA.whatsappLink} rel="noopener" target="_blank">{LOJA.whatsapp}</a></p>
+      <div class="rodape-contato">
+        <a class="contato-botao contato-zap" href={LOJA.whatsappLink} rel="noopener" target="_blank"><Simbolo nome="zap" tamanho={18} /><span>WhatsApp<small>{LOJA.whatsapp}</small></span></a>
+        <a class="contato-botao" href={`mailto:${LOJA.email}`}><Simbolo nome="email" tamanho={18} /><span>E-mail<small>{LOJA.email}</small></span></a>
+      </div>
     </div>
-    <nav aria-label="Comprar">
-      <p class="rodape-titulo">Comprar</p>
-      <a href="/produtos">Todos os produtos</a>
-      {categorias.map(c => <a href={`/categoria/${c.slug}`}>{c.nome}</a>)}
-    </nav>
-    <nav aria-label="Ajuda">
-      <p class="rodape-titulo">Ajuda</p>
-      <a href="/conta">Minha conta</a>
-      <a href="/pedido">Rastrear pedido</a>
-      <a href="/favoritos">Favoritos</a>
-      <a href="/frete-e-prazos">Frete e prazos</a>
-      <a href="/trocas-e-devolucoes">Trocas e devoluções</a>
-      <a href="/contato">Fale com a gente</a>
-    </nav>
-    <nav aria-label="Institucional">
-      <p class="rodape-titulo">Institucional</p>
-      <a href="/sobre">Sobre a Geek Aura</a>
-      <a href="/privacidade">Política de privacidade</a>
-      <a href="/termos">Termos de uso</a>
-    </nav>
+    {grupos.map(g => (
+      <details class="rodape-grupo" open data-rodape-grupo>
+        <summary class="rodape-titulo">{g.titulo}<span class="rodape-seta" aria-hidden="true"><Simbolo nome="direita" tamanho={18} /></span></summary>
+        <nav aria-label={g.titulo}>{g.links.map(l => <a href={l.href}>{l.nome}</a>)}</nav>
+      </details>
+    ))}
+  </div>
+  <div class="recipiente rodape-pagamento">
+    <span class="nota-clara">Pagamento seguro pelo Mercado Pago</span>
+    <span class="selos"><span>Pix</span><span>Cartão</span><span>Boleto</span></span>
   </div>
   <div class="recipiente rodape-legal">
-    <span>{LOJA.razaoSocial} · CNPJ {LOJA.cnpj} · {LOJA.endereco}</span>
-    <span>Pagamentos processados pelo Mercado Pago</span>
+    <span>{LOJA.razaoSocial} · CNPJ {LOJA.cnpj}</span>
+    <span>{LOJA.endereco}</span>
   </div>
 </footer>
+
+<script>
+  // No celular as sanfonas começam fechadas; sem JavaScript ficam abertas e nada some.
+  if (matchMedia('(max-width: 899px)').matches) {
+    for (const d of document.querySelectorAll<HTMLDetailsElement>('[data-rodape-grupo]')) d.open = false;
+  }
+</script>
