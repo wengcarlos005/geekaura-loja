@@ -18,7 +18,7 @@ export const LOJA = {
 export interface Categoria { nome: string; slug: string; }
 
 /** Categorias na ordem do menu; as que não têm produto no catálogo ficam de fora. */
-const ORDEM = ['Blocos de montar', 'Jogos de cartas', 'Cartas colecionáveis', 'Figuras e caixas surpresa', 'Natal'];
+const ORDEM = ['Blocos de montar', 'Cartas colecionáveis', 'Jogos de cartas', 'Jogos de tabuleiro', 'Figuras e caixas surpresa', 'Natal'];
 
 export function categoriasDoCatalogo(produtos: { categoria: string }[]): Categoria[] {
   const nomes = [...new Set(produtos.map(p => p.categoria).filter(Boolean))];
