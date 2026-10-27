@@ -286,9 +286,13 @@ html.sem-rolagem { overflow: hidden; }
 .ver-todos { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14.5px; text-decoration: none; white-space: nowrap; }
 .ver-todos svg { transition: transform .2s; }
 .ver-todos:hover svg { transform: translateX(4px); }
-.seta { width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--cinza-2); background: var(--branco); display: none; align-items: center; justify-content: center; cursor: pointer; transition: border-color .15s, background-color .15s, opacity .15s; }
-.seta:hover:not(:disabled) { border-color: var(--noite); }
-.seta:disabled { opacity: .35; cursor: default; }
+/* Setas nas laterais da fileira, por cima dos cards; somem no fim de cada lado. */
+.trilho-moldura { position: relative; }
+.seta { position: absolute; top: calc(50% - 26px); z-index: 6; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--cinza-2); background: var(--branco); color: var(--noite); display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 24px -10px rgba(17, 16, 20, .45); transition: opacity .2s, transform .2s, background-color .15s; }
+.seta-esq { left: -22px; }
+.seta-dir { right: -22px; }
+.seta:hover:not(:disabled) { background: var(--noite); color: var(--branco); transform: scale(1.06); }
+.seta:disabled { opacity: 0; pointer-events: none; }
 @media (min-width: 900px) { .seta { display: inline-flex; } }
 .trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 46%; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 24px; scroll-padding: 0 16px; }
 .trilho::-webkit-scrollbar { display: none; }

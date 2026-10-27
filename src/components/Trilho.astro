@@ -14,16 +14,14 @@ const idTitulo = `trilho-${id ?? Math.random().toString(36).slice(2, 8)}`;
         {sobrelinha && <p class="sobrelinha">{sobrelinha}</p>}
         <h2 id={idTitulo}>{titulo}</h2>
       </div>
-      <div class="trilho-acoes">
-        {verTodos && <a class="ver-todos" href={verTodos.href}>{verTodos.rotulo ?? 'Ver todos'} <Simbolo nome="direita" tamanho={18} /></a>}
-        {produtos.length > 4 && <>
-          <button type="button" class="seta" data-seta="-1" aria-label="Anteriores" disabled><Simbolo nome="esquerda" tamanho={20} /></button>
-          <button type="button" class="seta" data-seta="1" aria-label="Próximos"><Simbolo nome="direita" tamanho={20} /></button>
-        </>}
-      </div>
+      {verTodos && <a class="ver-todos" href={verTodos.href}>{verTodos.rotulo ?? 'Ver todos'} <Simbolo nome="direita" tamanho={18} /></a>}
     </div>
-    <div class="trilho" data-trilho tabindex="-1">
-      {produtos.map(p => <CardProduto produto={p} />)}
+    <div class="trilho-moldura">
+      {produtos.length > 4 && <button type="button" class="seta seta-esq" data-seta="-1" aria-label="Anteriores" disabled><Simbolo nome="esquerda" tamanho={22} /></button>}
+      <div class="trilho" data-trilho tabindex="-1">
+        {produtos.map(p => <CardProduto produto={p} />)}
+      </div>
+      {produtos.length > 4 && <button type="button" class="seta seta-dir" data-seta="1" aria-label="Próximos"><Simbolo nome="direita" tamanho={22} /></button>}
     </div>
   </section>
 )}
