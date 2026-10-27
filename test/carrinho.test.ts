@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { aplicar, assinar, lerOperacao, normalizar, verificar } from '../src/lib/carrinho';
 
 const SEGREDO = 'segredo-de-teste-com-tamanho-bom';
+const deB64 = (s: string) => atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+const paraB64 = (s: string) => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
 describe('cookie do carrinho', () => {
   it('ida e volta preserva os itens', async () => {
@@ -11,13 +13,13 @@ describe('cookie do carrinho', () => {
 
   it('guarda só sku e quantidade, nunca preço', async () => {
     const valor = await assinar([{ sku: 'A1', qtd: 1, preco: 0.01 } as any], SEGREDO);
-    const corpo = Buffer.from(valor.split('.')[0], 'base64url').toString();
+    const corpo = deB64(valor.split('.')[0]);
     expect(corpo).toBe('[{"s":"A1","q":1}]');
   });
 
   it('corpo adulterado é descartado', async () => {
     const valor = await assinar([{ sku: 'A1', qtd: 1 }], SEGREDO);
-    const falso = Buffer.from('[{"s":"A1","q":99}]').toString('base64url');
+    const falso = paraB64('[{"s":"A1","q":99}]');
     expect(await verificar(`${falso}.${valor.split('.')[1]}`, SEGREDO)).toEqual([]);
   });
 

@@ -4,7 +4,6 @@ interface Env {
   RYZO_URL?: string;
   RYZO_VITRINE_KEY?: string;
   CART_SECRET?: string;
-  ASSETS?: Fetcher;
 }
 
 type Runtime = import('@astrojs/cloudflare').Runtime<Env>;
