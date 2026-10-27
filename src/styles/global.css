@@ -408,3 +408,16 @@ html.sem-rolagem { overflow: hidden; }
 @media (min-width: 900px) { .selo-modelos { display: none; } }
 /* Com a barra de compra fixa do produto aberta, o WhatsApp sobe para não cobrir o botão. */
 @media (max-width: 899px) { body:has(.compra-fixa:not([hidden])) .zap-flutuante { bottom: calc(140px + env(safe-area-inset-bottom)); } }
+
+/* ---------- Frete grátis: barra de progresso ---------- */
+.frete-gratis { display: flex; flex-direction: column; gap: 8px; background: var(--creme); border: 1px solid var(--creme-escuro); border-radius: var(--r-card); padding: 10px 12px; font-size: 13.5px; }
+.frete-gratis p { display: flex; align-items: center; gap: 8px; }
+.frete-gratis p svg { flex-shrink: 0; color: var(--abobora-escura); }
+.fg-trilho { height: 6px; border-radius: 999px; background: var(--creme-escuro); overflow: hidden; }
+.fg-trilho span { display: block; height: 100%; border-radius: inherit; background: var(--abobora); transition: width .4s ease; }
+.frete-gratis.ganhou { background: #EAF3E7; border-color: #C5DEBD; color: #24451D; }
+.frete-gratis.ganhou p svg { color: var(--folha); }
+.frete-gratis.ganhou .fg-trilho { background: #C5DEBD; }
+.frete-gratis.ganhou .fg-trilho span { background: var(--folha); }
+.frete-gratis[hidden] { display: none; }
+.preco-riscado { text-decoration: line-through; color: var(--cinza-3); font-weight: 400; margin-right: 6px; font-size: .9em; }

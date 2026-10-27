@@ -2,12 +2,13 @@
 import Logo from './Logo.astro';
 import Simbolo from './Simbolo.astro';
 import type { Categoria } from '../lib/loja';
-interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; nomeCliente?: string | null; }
-const { categorias, atual, qtdCarrinho, busca = '', nomeCliente } = Astro.props;
+import { precoBRL } from '../lib/formato';
+interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; nomeCliente?: string | null; freteGratisAcima?: number | null; }
+const { categorias, atual, qtdCarrinho, busca = '', nomeCliente, freteGratisAcima } = Astro.props;
 ---
 <div class="faixa-util">
   <div class="recipiente">
-    <span class="so-largo">Enviamos para todo o Brasil · postagem em até 2 dias úteis</span>
+    <span class="so-largo">{freteGratisAcima ? `Frete grátis acima de ${precoBRL(freteGratisAcima).replace(',00', '')}` : 'Enviamos para todo o Brasil'} · postagem em até 2 dias úteis</span>
     <nav aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
   </div>
 </div>

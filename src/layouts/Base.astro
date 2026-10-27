@@ -11,9 +11,8 @@ import Cabecalho from '../components/Cabecalho.astro';
 import Rodape from '../components/Rodape.astro';
 import GavetaCarrinho from '../components/GavetaCarrinho.astro';
 import BarraInferior from '../components/BarraInferior.astro';
-import Simbolo from '../components/Simbolo.astro';
 import { lerSessao } from '../lib/conta';
-import { catalogo, modoDemo } from '../lib/ryzo';
+import { catalogo, configLoja, modoDemo } from '../lib/ryzo';
 import { categoriasDoCatalogo, LOJA, type Categoria } from '../lib/loja';
 import { envDe, lerCarrinho } from '../lib/api';
 import { jsonLdSeguro } from '../lib/seo';
@@ -37,6 +36,7 @@ try { categorias = categoriasDoCatalogo(await catalogo(env)); } catch { /* menu 
 let qtdCarrinho = 0;
 try { qtdCarrinho = (await lerCarrinho(Astro)).reduce((s, i) => s + i.qtd, 0); } catch { /* sem segredo: carrinho vazio */ }
 const nomeCliente = (await lerSessao(Astro))?.n ?? null;
+const freteGratisAcima = (await configLoja(env).catch(() => ({ frete_gratis_acima: null }))).frete_gratis_acima;
 
 const tituloCompleto = titulo === LOJA.nome ? `${LOJA.nome} · Blocos de montar, jogos de cartas e colecionáveis` : `${titulo} · ${LOJA.nome}`;
 const canonico = new URL(Astro.url.pathname, LOJA.url).href;
@@ -81,7 +81,7 @@ const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
   <body>
     <a class="pular" href="#conteudo">Pular para o conteúdo</a>
     {demo && <div class="faixa-demo" role="note"><strong>Modo demonstração</strong><span class="so-largo"> · produtos reais, pedidos e pagamentos simulados</span><span class="so-estreito"> · pagamentos simulados</span></div>}
-    <Cabecalho categorias={categorias} atual={atual} qtdCarrinho={qtdCarrinho} busca={busca} nomeCliente={nomeCliente} />
+    <Cabecalho categorias={categorias} atual={atual} qtdCarrinho={qtdCarrinho} busca={busca} nomeCliente={nomeCliente} freteGratisAcima={freteGratisAcima} />
     <main id="conteudo">
       <slot />
     </main>

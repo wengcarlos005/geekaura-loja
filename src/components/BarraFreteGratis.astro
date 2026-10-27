@@ -1,0 +1,19 @@
+---
+// "Faltam R$ X para o frete grátis", com barra de progresso. Não aparece se a loja não tem frete grátis.
+import Simbolo from './Simbolo.astro';
+import { precoBRL } from '../lib/formato';
+import { faltaParaFreteGratis } from '../lib/freteGratis';
+interface Props { subtotal: number; limite: number | null; }
+const { subtotal, limite } = Astro.props;
+const falta = faltaParaFreteGratis(subtotal, limite);
+const pct = limite ? Math.min(100, Math.round((subtotal / limite) * 100)) : 0;
+---
+{falta !== null && (
+  <div class:list={['frete-gratis', { ganhou: falta === 0 }]} data-frete-gratis>
+    <p><Simbolo nome="caminhao" tamanho={18} />
+      {falta === 0 ? <span><strong>Você ganhou frete grátis</strong> na opção mais econômica.</span>
+        : <span>Faltam <strong>{precoBRL(falta)}</strong> para o <strong>frete grátis</strong></span>}
+    </p>
+    <div class="fg-trilho" aria-hidden="true"><span style={`width:${pct}%`}></span></div>
+  </div>
+)}

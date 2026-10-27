@@ -16,7 +16,12 @@ export interface Produto extends ProdutoResumo {
 }
 export interface ItemDisponivel { sku: string; qtd: number; a_venda: boolean; preco: number; disponivel: number; ok: boolean; }
 export interface Disponibilidade { ok: boolean; itens: ItemDisponivel[]; subtotal: number; }
-export interface OpcaoFrete { id: number; nome: string; transportadora: string; preco: number; prazo_dias: number; }
+export interface OpcaoFrete {
+  id: number; nome: string; transportadora: string; preco: number; prazo_dias: number;
+  /** Preço antes do frete grátis; igual a `preco` quando a regra não se aplica. */
+  preco_original: number; gratis: boolean;
+}
+export interface ConfigLoja { frete_gratis_acima: number | null; }
 export interface Entrega {
   nome: string; cpf: string; telefone: string; email: string; cep: string; logradouro: string;
   numero: string; complemento: string; bairro: string; cidade: string; uf: string;
@@ -188,8 +193,21 @@ export async function catalogo(env: Env): Promise<ProdutoResumo[]> {
   if (modoDemo(env)) return demo.catalogo();
   return comCache(`${env.RYZO_URL}|catalogo`, async () => {
     const d = await chamar(env, 'GET', '/catalogo');
+    // A configuração da loja vem na mesma resposta; fica guardada para configLoja() não pedir de novo.
+    const limite = num(d?.loja?.frete_gratis_acima, NaN);
+    cache.set(`${env.RYZO_URL}|loja`, { expira: Date.now() + CACHE_MS, valor: { frete_gratis_acima: limite > 0 ? limite : null } });
     return (Array.isArray(d.produtos) ? d.produtos : []).map(mapearProduto).filter(Boolean) as Produto[];
   });
+}
+
+/** Configuração pública da loja (hoje só o frete grátis). Sai da mesma chamada do catálogo. */
+export async function configLoja(env: Env): Promise<ConfigLoja> {
+  if (modoDemo(env)) return demo.configLoja();
+  const chave = `${env.RYZO_URL}|loja`;
+  const hit = cache.get(chave);
+  if (hit && hit.expira > Date.now()) return hit.valor as ConfigLoja;
+  await catalogo(env);
+  return (cache.get(chave)?.valor as ConfigLoja | undefined) ?? { frete_gratis_acima: null };
 }
 
 export async function produto(env: Env, slug: string): Promise<Produto | null> {
@@ -217,6 +235,7 @@ export async function frete(env: Env, itens: ItemDoCarrinho[], cep: string): Pro
   const d = await chamar(env, 'POST', '/frete', { itens, cep });
   return (Array.isArray(d.opcoes) ? d.opcoes : []).map((o: any) => ({
     id: num(o?.id), nome: str(o?.nome, 80), transportadora: str(o?.transportadora, 80), preco: num(o?.preco), prazo_dias: num(o?.prazo_dias),
+    preco_original: num(o?.preco_original, num(o?.preco)), gratis: o?.gratis === true || num(o?.preco) === 0,
   })).filter((o: OpcaoFrete) => o.id > 0 && o.preco >= 0);
 }
 

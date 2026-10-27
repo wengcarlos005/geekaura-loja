@@ -10,6 +10,7 @@ import type {
 } from './ryzo';
 import type { ItemDoCarrinho } from './carrinho';
 import { ErroRyzo } from './erros';
+import { aplicarFreteGratis } from './freteGratis';
 import catalogoExtra from './catalogo-demo.json';
 
 /** Cópia da regra do Ryzo (src/lojaPropria.ts). Só o modo demonstração calcula preço: em produção ele vem pronto. */
@@ -347,6 +348,10 @@ const PRODUTOS: Produto[] = BRUTOS.map(b => {
 
 const porSku = new Map(PRODUTOS.flatMap(p => p.variacoes.map(v => [v.sku, { p, v }] as const)));
 
+/** No modo demonstração o frete grátis segue o valor combinado com a loja (R$ 200). */
+export const FRETE_GRATIS_DEMO = 200;
+export function configLoja() { return { frete_gratis_acima: FRETE_GRATIS_DEMO }; }
+
 export function catalogo(): Produto[] { return PRODUTOS; }
 export function produto(slug: string): Produto | null { return PRODUTOS.find(p => p.slug === slug) ?? null; }
 
@@ -368,11 +373,12 @@ export function frete(itens: ItemDoCarrinho[], cep: string): OpcaoFrete[] {
   // Sudeste (CEP 0 a 3) mais perto da origem; o resto do país leva mais tempo e custa mais.
   const longe = Number(cep[0]) >= 4;
   const r = (v: number) => Number(v.toFixed(2));
-  return [
-    { id: 1, nome: 'PAC', transportadora: 'Correios', preco: r(17.9 + pesoKg * 4 + (longe ? 9 : 0)), prazo_dias: longe ? 9 : 5 },
-    { id: 2, nome: 'SEDEX', transportadora: 'Correios', preco: r(24.9 + pesoKg * 7 + (longe ? 14 : 0)), prazo_dias: longe ? 4 : 2 },
-    { id: 3, nome: '.Package', transportadora: 'Jadlog', preco: r(15.9 + pesoKg * 5 + (longe ? 11 : 0)), prazo_dias: longe ? 8 : 4 },
-  ];
+  return aplicarFreteGratis([
+    // Valores de faixa típica do Melhor Envio para pacote pequeno saindo do RJ (não é cotação real).
+    { id: 1, nome: 'PAC', transportadora: 'Correios', preco: r(12.4 + pesoKg * 3 + (longe ? 6 : 0)), prazo_dias: longe ? 9 : 5 },
+    { id: 2, nome: 'SEDEX', transportadora: 'Correios', preco: r(16.9 + pesoKg * 5 + (longe ? 9 : 0)), prazo_dias: longe ? 4 : 2 },
+    { id: 3, nome: '.Package', transportadora: 'Jadlog', preco: r(11.5 + pesoKg * 3.5 + (longe ? 7 : 0)), prazo_dias: longe ? 8 : 4 },
+  ], disponibilidade(itens).subtotal, FRETE_GRATIS_DEMO);
 }
 
 interface PedidoDemo { pedido: Pedido; pagamento: Pagamento | null; email: string; }

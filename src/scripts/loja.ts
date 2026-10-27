@@ -2,6 +2,7 @@
 // sugestões na busca do topo e fotos que falharam antes de o script carregar.
 import './movimento';
 import { precoBRL } from '../lib/formato';
+import { faltaParaFreteGratis } from '../lib/freteGratis';
 
 for (const img of document.querySelectorAll<HTMLImageElement>('.foto img')) {
   if (img.complete && img.naturalWidth === 0) img.parentElement?.classList.add('falhou');
@@ -60,7 +61,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, classe?: string, text
   return e;
 }
 
-function desenharGaveta(d: { linhas: Linha[]; subtotal: number; qtd: number; pronto: boolean }) {
+function desenharGaveta(d: { linhas: Linha[]; subtotal: number; qtd: number; pronto: boolean; frete_gratis_acima?: number | null }) {
   if (!gaveta) return;
   const lista = gaveta.querySelector<HTMLElement>('[data-gaveta-itens]')!;
   const vazia = gaveta.querySelector<HTMLElement>('[data-gaveta-vazia]')!;
@@ -96,6 +97,19 @@ function desenharGaveta(d: { linhas: Linha[]; subtotal: number; qtd: number; pro
     lista.append(li);
   }
   gaveta.querySelector('[data-gaveta-subtotal]')!.textContent = precoBRL(d.subtotal);
+  // Barra do frete grátis: texto montado com nós, nada de innerHTML.
+  const caixaFg = gaveta.querySelector<HTMLElement>('[data-gaveta-frete]');
+  const falta = faltaParaFreteGratis(d.subtotal, d.frete_gratis_acima ?? null);
+  if (caixaFg) {
+    caixaFg.hidden = falta === null || !d.linhas.length;
+    caixaFg.classList.toggle('ganhou', falta === 0);
+    const texto = caixaFg.querySelector<HTMLElement>('[data-gaveta-frete-texto]')!;
+    texto.replaceChildren();
+    if (falta === 0) texto.append(el('strong', '', 'Você ganhou frete grátis'), document.createTextNode(' na opção mais econômica.'));
+    else if (falta !== null) texto.append(document.createTextNode('Faltam '), el('strong', '', precoBRL(falta)), document.createTextNode(' para o '), el('strong', '', 'frete grátis'));
+    const lim = d.frete_gratis_acima ?? 0;
+    caixaFg.querySelector<HTMLElement>('[data-gaveta-frete-barra]')!.style.width = `${lim ? Math.min(100, Math.round((d.subtotal / lim) * 100)) : 0}%`;
+  }
   const fechar = gaveta.querySelector<HTMLAnchorElement>('[data-gaveta-checkout]');
   if (fechar) fechar.setAttribute('aria-disabled', d.pronto ? 'false' : 'true');
   gaveta.querySelector<HTMLElement>('[data-gaveta-problema]')!.hidden = d.pronto || !d.linhas.length;

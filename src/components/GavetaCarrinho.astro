@@ -17,6 +17,10 @@ import Simbolo from './Simbolo.astro';
     <a class="botao botao-primario" href="/produtos">Ver produtos</a>
   </div>
   <div class="gaveta-rodape" data-gaveta-rodape hidden>
+    <div class="frete-gratis" data-gaveta-frete hidden>
+      <p><Simbolo nome="caminhao" tamanho={18} /><span data-gaveta-frete-texto></span></p>
+      <div class="fg-trilho" aria-hidden="true"><span data-gaveta-frete-barra></span></div>
+    </div>
     <p class="aviso aviso-erro" data-gaveta-problema hidden>Ajuste os itens marcados para continuar.</p>
     <div class="linha-total grande"><span>Subtotal</span><span data-gaveta-subtotal></span></div>
     <p class="nota">Frete e prazo no próximo passo. Pix aprovado na hora.</p>

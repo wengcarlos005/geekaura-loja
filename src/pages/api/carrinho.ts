@@ -3,15 +3,15 @@
 import type { APIRoute } from 'astro';
 import { aplicar, lerOperacao } from '../../lib/carrinho';
 import { envDe, erro, falha, gravarCarrinho, json, lerCarrinho, lerJson, limitar, origemValida } from '../../lib/api';
-import { catalogo } from '../../lib/ryzo';
+import { catalogo, configLoja } from '../../lib/ryzo';
 import { montarCarrinho } from '../../lib/carrinhoVisivel';
 
 /** GET /api/carrinho — linhas do carrinho para a gaveta lateral (nome, foto, preço e estoque de hoje). */
 export const GET: APIRoute = async ctx => {
   try {
     const itens = await lerCarrinho(ctx);
-    const { linhas, subtotal, ok } = await montarCarrinho(envDe(ctx), itens);
-    return json({ ok: true, pronto: ok, subtotal, qtd: itens.reduce((s, i) => s + i.qtd, 0), linhas });
+    const [{ linhas, subtotal, ok }, loja] = await Promise.all([montarCarrinho(envDe(ctx), itens), configLoja(envDe(ctx))]);
+    return json({ ok: true, pronto: ok, subtotal, qtd: itens.reduce((s, i) => s + i.qtd, 0), linhas, frete_gratis_acima: loja.frete_gratis_acima });
   } catch (e) {
     return falha(e);
   }

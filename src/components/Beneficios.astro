@@ -1,12 +1,19 @@
 ---
 import Simbolo from './Simbolo.astro';
 import { LOJA } from '../lib/loja';
-const itens = [
+import { precoBRL } from '../lib/formato';
+interface Props { freteGratisAcima?: number | null; }
+const { freteGratisAcima } = Astro.props;
+const lista = [
   { icone: 'pix', titulo: 'Pix aprovado na hora', texto: 'Cartão e boleto pelo Mercado Pago' },
-  { icone: 'caminhao', titulo: 'Frete calculado no produto', texto: 'Correios e transportadoras' },
+  freteGratisAcima
+    ? { icone: 'caminhao' as const, titulo: `Frete grátis acima de ${precoBRL(freteGratisAcima).replace(',00', '')}`, texto: 'Na opção mais econômica' }
+    : { icone: 'caminhao' as const, titulo: 'Frete calculado no produto', texto: 'Correios e transportadoras' },
   { icone: 'devolucao', titulo: '7 dias para devolver', texto: 'Direito garantido pelo CDC' },
   { icone: 'estrela', titulo: `Nota ${LOJA.notaShopee} na Shopee`, texto: 'Avaliação da loja Geek Aura' },
 ] as const;
+// Com frete grátis ele vai para a frente: no celular a fileira rola de lado e o primeiro é o que se vê.
+const itens = freteGratisAcima ? [lista[1], lista[0], lista[2], lista[3]] : lista;
 ---
 <section class="beneficios" aria-label="Por que comprar no site">
   <div class="recipiente"><div class="beneficios-grade">
