@@ -237,7 +237,7 @@ const cepFmt = (c: string) => `${c.slice(0, 5)}-${c.slice(5)}`;
       const r = await fetch('/api/frete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cep, carrinho: true }) });
       const d = await r.json();
       if (!d.ok) { opcoes.replaceChildren(Object.assign(document.createElement('p'), { className: 'aviso aviso-erro', textContent: d.error || 'Não foi possível calcular o frete.' })); ultimoCep = ''; return; }
-      const itens = (d.opcoes as { id: number; nome: string; transportadora: string; preco: number; prazo_dias: number }[])
+      const itens = (d.opcoes as { id: number; nome: string; transportadora: string; preco: number; preco_original?: number; gratis?: boolean; prazo_dias: number }[])
         .sort((a, b) => a.preco - b.preco)
         .map((o, i) => {
           const rotulo = document.createElement('label');
@@ -253,7 +253,9 @@ const cepFmt = (c: string) => `${c.slice(0, 5)}-${c.slice(5)}`;
           prazo.textContent = `Chega em até ${o.prazo_dias} ${o.prazo_dias === 1 ? 'dia útil' : 'dias úteis'} após a postagem`;
           nome.append(titulo, prazo);
           const preco = document.createElement('strong');
-          preco.textContent = o.preco === 0 ? 'Grátis' : precoBRL(o.preco);
+          // Com frete grátis o preço cheio aparece riscado ao lado: o comprador vê o que ganhou.
+          if (o.preco_original && o.preco_original > o.preco) preco.append(Object.assign(document.createElement('span'), { className: 'preco-riscado', textContent: precoBRL(o.preco_original) }));
+          preco.append(document.createTextNode(o.preco === 0 ? 'Grátis' : precoBRL(o.preco)));
           rotulo.append(input, nome, preco);
           return rotulo;
         });

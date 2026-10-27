@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Foto from '../../components/Foto.astro';
 import Simbolo from '../../components/Simbolo.astro';
 import Trilho from '../../components/Trilho.astro';
-import { catalogo, produto as buscarProduto, type ProdutoResumo } from '../../lib/ryzo';
+import { catalogo, configLoja, produto as buscarProduto, type ProdutoResumo } from '../../lib/ryzo';
 import { envDe } from '../../lib/api';
 import { precoBRL, slugificar } from '../../lib/formato';
 import { LOJA } from '../../lib/loja';
@@ -41,6 +41,7 @@ const jsonLd = {
 };
 const textoEstoque = (escolhida?.estoque ?? 0) <= 5 ? `Últimas ${escolhida?.estoque} unidades` : 'Em estoque, pronto para envio';
 const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
+const limiteFrete = (await configLoja(envDe(Astro)).catch(() => ({ frete_gratis_acima: null }))).frete_gratis_acima;
 let relacionados: ProdutoResumo[] = [];
 try {
   const todos = (await catalogo(envDe(Astro))).filter(x => x.slug !== p.slug && x.disponivel);
@@ -128,6 +129,7 @@ try {
             <input id="cep-produto" name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required />
             <button class="botao botao-contorno" type="submit">Calcular</button>
           </form>
+          {limiteFrete && <p class="frete-dica"><strong>Frete grátis</strong> em compras a partir de {precoBRL(limiteFrete)}, na opção mais econômica.</p>}
           <a class="nota" href="https://buscacepinter.correios.com.br/app/endereco/index.php" rel="noopener" target="_blank">Não sei meu CEP</a>
           <div data-frete-resultado aria-live="polite"></div>
         </div>
@@ -221,6 +223,7 @@ try {
   .frete-form input { flex: 1; min-width: 0; height: 44px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 12px; }
   .frete-form .botao { height: 44px; padding: 0 18px; }
   .frete .nota { align-self: flex-start; }
+  .frete-dica { font-size: 13.5px; color: #24451D; background: #EAF3E7; border-radius: var(--r-botao); padding: 8px 10px; }
   .garantias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--texto-suave); }
   .garantias li { display: flex; align-items: center; gap: 10px; }
 
@@ -333,7 +336,8 @@ try {
         const nome = document.createElement('span');
         nome.textContent = `${o.transportadora} ${o.nome} · até ${o.prazo_dias} ${o.prazo_dias === 1 ? 'dia útil' : 'dias úteis'}`;
         const valor = document.createElement('strong');
-        valor.textContent = precoBRL(o.preco);
+        if (o.preco_original > o.preco) valor.append(Object.assign(document.createElement('span'), { className: 'preco-riscado', textContent: precoBRL(o.preco_original) }));
+        valor.append(document.createTextNode(o.preco === 0 ? 'Grátis' : precoBRL(o.preco)));
         li.append(nome, valor);
         lista.append(li);
       }

@@ -4,12 +4,15 @@ import Foto from '../components/Foto.astro';
 import Simbolo from '../components/Simbolo.astro';
 import { envDe, lerCarrinho } from '../lib/api';
 import { montarCarrinho } from '../lib/carrinhoVisivel';
+import BarraFreteGratis from '../components/BarraFreteGratis.astro';
+import { configLoja } from '../lib/ryzo';
 import { precoBRL } from '../lib/formato';
 
 let carrinho: Awaited<ReturnType<typeof montarCarrinho>> = { linhas: [], subtotal: 0, ok: false };
 let erroCarga = false;
 try { carrinho = await montarCarrinho(envDe(Astro), await lerCarrinho(Astro)); } catch { erroCarga = true; }
 const { linhas, subtotal, ok } = carrinho;
+const limiteFrete = (await configLoja(envDe(Astro)).catch(() => ({ frete_gratis_acima: null }))).frete_gratis_acima;
 const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
 ---
 <Base titulo="Carrinho" descricao="Seu carrinho na Geek Aura." noindex>
@@ -59,6 +62,7 @@ const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
         </ul>
         <aside class="painel resumo">
           <h2>Resumo</h2>
+          <BarraFreteGratis subtotal={subtotal} limite={limiteFrete} />
           <div class="linha-total"><span>Produtos ({qtdTotal})</span><span>{precoBRL(subtotal)}</span></div>
           <div class="linha-total"><span>Frete</span><span class="nota">calculado no próximo passo</span></div>
           <div class="linha-total grande"><span>Subtotal</span><span>{precoBRL(subtotal)}</span></div>
