@@ -45,7 +45,7 @@ const params = new URLSearchParams(Astro.url.search);
   .ordenar { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; }
   .ordenar select { height: 40px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 10px; background: var(--branco); }
   .vazio { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 40px 0; color: var(--texto-suave); }
-  .vazio img { width: 140px; height: 140px; background: var(--creme); border-radius: var(--r-card); }
+  .vazio img { width: 140px; height: 140px; border-radius: var(--r-card); }
 </style>
 <script>
   document.querySelector<HTMLFormElement>('[data-ordenar] select')?.addEventListener('change', e => (e.target as HTMLSelectElement).form?.submit());
