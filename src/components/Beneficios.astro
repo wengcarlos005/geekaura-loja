@@ -22,6 +22,16 @@ const itens = [
   .beneficios { margin-top: 20px; }
   .beneficios-grade { border: 1px solid var(--cinza-2); border-radius: 14px; padding-left: 18px; padding-right: 18px; }
   .beneficios-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 18px; padding-bottom: 18px; }
+  /* No celular vira uma fileira que rola de lado, sem caixa: quatro blocos espremidos liam mal. */
+  @media (max-width: 899px) {
+    .beneficios { margin-top: 14px; }
+    .beneficios-grade { display: flex; overflow-x: auto; scrollbar-width: none; border: 0; border-radius: 0; gap: 10px; padding: 0 16px; margin: 0 -16px; }
+    .beneficios-grade::-webkit-scrollbar { display: none; }
+    .beneficio { flex: 0 0 auto; background: var(--cinza-1); border-radius: 999px; padding: 6px 14px 6px 6px; gap: 8px; }
+    .beneficio :global(svg) { width: 32px !important; height: 32px !important; padding: 7px !important; background: var(--branco) !important; }
+    .beneficio-titulo { font-size: 13px; white-space: nowrap; }
+    .beneficio-texto { display: none; }
+  }
   @media (min-width: 900px) { .beneficios-grade { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .beneficio { display: flex; gap: 12px; align-items: center; }
   .beneficio :global(svg) { width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: var(--creme); color: var(--abobora-escura); }

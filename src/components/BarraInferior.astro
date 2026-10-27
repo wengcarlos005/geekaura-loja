@@ -1,0 +1,24 @@
+---
+// Navegação de baixo, só no celular: o polegar alcança, e o topo fica livre para logo e busca.
+import Simbolo from './Simbolo.astro';
+interface Props { atual?: string; qtdCarrinho: number; nomeCliente?: string | null; caminho: string; }
+const { atual, qtdCarrinho, nomeCliente, caminho } = Astro.props;
+const ativo = (id: string) => {
+  if (id === 'inicio') return atual === 'inicio';
+  if (id === 'produtos') return atual !== 'inicio' && /^\/(produtos|categoria|produto|busca)/.test(caminho);
+  if (id === 'favoritos') return caminho.startsWith('/favoritos');
+  if (id === 'conta') return /^\/(conta|entrar|cadastro|recuperar-senha)/.test(caminho);
+  return caminho.startsWith('/carrinho');
+};
+---
+<nav class="barra-inferior" aria-label="Navegação principal">
+  <a href="/" aria-current={ativo('inicio') ? 'page' : undefined}><Simbolo nome="casa" /><span>Início</span></a>
+  <a href="/produtos" aria-current={ativo('produtos') ? 'page' : undefined}><Simbolo nome="grade" /><span>Produtos</span></a>
+  <a href="/favoritos" aria-current={ativo('favoritos') ? 'page' : undefined}>
+    <span class="bi-icone"><Simbolo nome="coracao" /><span class="contador" aria-hidden="true" data-fav-contador data-zero>0</span></span><span>Favoritos</span>
+  </a>
+  <a href={nomeCliente ? '/conta' : '/entrar'} aria-current={ativo('conta') ? 'page' : undefined}><Simbolo nome="usuario" /><span>{nomeCliente ? 'Conta' : 'Entrar'}</span></a>
+  <a href="/carrinho" data-abre-gaveta aria-current={ativo('carrinho') ? 'page' : undefined}>
+    <span class="bi-icone"><Simbolo nome="carrinho" /><span class="contador" aria-hidden="true" data-contador data-zero={qtdCarrinho ? undefined : ''}>{qtdCarrinho}</span></span><span>Carrinho</span>
+  </a>
+</nav>
