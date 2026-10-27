@@ -1,23 +1,30 @@
 ---
 import Foto from './Foto.astro';
+import Simbolo from './Simbolo.astro';
 import { precoBRL } from '../lib/formato';
 import type { ProdutoResumo } from '../lib/ryzo';
-interface Props { produto: ProdutoResumo; carregar?: 'lazy' | 'eager'; }
-const { produto: p, carregar = 'lazy' } = Astro.props;
+interface Props { produto: ProdutoResumo; carregar?: 'lazy' | 'eager'; revelar?: boolean; }
+const { produto: p, carregar = 'lazy', revelar = true } = Astro.props;
 const estoqueTotal = p.variacoes.reduce((s, v) => s + v.estoque, 0);
 const unica = p.variacoes.length === 1 ? p.variacoes[0] : null;
 const variasFaixas = new Set(p.variacoes.map(v => v.preco)).size > 1;
 const selo = !p.disponivel ? { texto: 'Esgotado', classe: 'selo-cinza' }
   : estoqueTotal <= 5 ? { texto: 'Últimas unidades', classe: 'selo-abobora' } : null;
+const modelos = p.variacoes.length > 1 ? p.variacoes.length : 0;
+const segunda = p.fotos.find(f => f !== p.fotos[0]) ?? null;
 const url = `/produto/${p.slug}`;
 ---
-<article class="card" data-categoria={p.categoria}>
-  <a class="card-foto" href={url} tabindex="-1" aria-hidden="true">
-    {selo && <span class:list={['selo', selo.classe]}>{selo.texto}</span>}
-    <Foto src={p.fotos[0]} alt="" nome={p.titulo} tamanho={420} carregar={carregar} />
-  </a>
+<article class="card" data-categoria={p.categoria} data-slug={p.slug} data-revelar={revelar ? '' : undefined}>
+  <div class="card-midia">
+    <a class="card-foto" href={url} tabindex="-1" aria-hidden="true">
+      {selo && <span class:list={['selo', selo.classe]}>{selo.texto}</span>}
+      <Foto src={p.fotos[0]} alt="" nome={p.titulo} tamanho={420} carregar={carregar} />
+      {segunda && <img class="card-foto-2" src={segunda} alt="" width="420" height="420" loading="lazy" decoding="async" referrerpolicy="no-referrer" />}
+    </a>
+    <button type="button" class="card-fav" data-favorito={p.slug} aria-pressed="false" aria-label="Salvar nos favoritos"><Simbolo nome="coracao" tamanho={20} /></button>
+  </div>
   <div class="card-corpo">
-    <p class="card-categoria">{p.categoria}</p>
+    <p class="card-categoria">{p.categoria}{modelos > 0 && <span class="card-modelos"> · {modelos} modelos</span>}</p>
     <a class="card-nome" href={url}>{p.titulo}</a>
     <div class="card-preco">
       {variasFaixas && <span class="preco-de">a partir de</span>}
@@ -28,10 +35,13 @@ const url = `/produto/${p.slug}`;
         <input type="hidden" name="acao" value="adicionar" />
         <input type="hidden" name="sku" value={unica.sku} />
         <input type="hidden" name="qtd" value="1" />
-        <button class="botao botao-escuro" type="submit" aria-label={`Adicionar ${p.titulo} ao carrinho`}><span>Adicionar<span class="so-largo"> ao carrinho</span></span></button>
+        <button class="botao botao-escuro botao-card" type="submit" aria-label={`Adicionar ${p.titulo} ao carrinho`}>
+          <span class="rotulo-normal"><Simbolo nome="carrinho" tamanho={18} />Adicionar</span>
+          <span class="rotulo-ok" aria-hidden="true"><Simbolo nome="check" tamanho={18} />Adicionado</span>
+        </button>
       </form>
     ) : (
-      <a class="botao botao-escuro" href={url} aria-disabled={p.disponivel ? undefined : 'true'}>{p.disponivel ? 'Escolher modelo' : 'Ver produto'}</a>
+      <a class="botao botao-contorno botao-card" href={url} aria-disabled={p.disponivel ? undefined : 'true'}>{p.disponivel ? 'Ver modelos' : 'Ver produto'}</a>
     )}
   </div>
 </article>

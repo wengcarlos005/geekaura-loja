@@ -6,8 +6,12 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '../styles/global.css';
+import '../styles/movimento.css';
 import Cabecalho from '../components/Cabecalho.astro';
 import Rodape from '../components/Rodape.astro';
+import GavetaCarrinho from '../components/GavetaCarrinho.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { lerSessao } from '../lib/conta';
 import { catalogo, modoDemo } from '../lib/ryzo';
 import { categoriasDoCatalogo, LOJA, type Categoria } from '../lib/loja';
 import { envDe, lerCarrinho } from '../lib/api';
@@ -31,6 +35,9 @@ let categorias: Categoria[] = [];
 try { categorias = categoriasDoCatalogo(await catalogo(env)); } catch { /* menu sem categorias se o Ryzo cair */ }
 let qtdCarrinho = 0;
 try { qtdCarrinho = (await lerCarrinho(Astro)).reduce((s, i) => s + i.qtd, 0); } catch { /* sem segredo: carrinho vazio */ }
+const nomeCliente = (await lerSessao(Astro))?.n ?? null;
+// No checkout e na página do pedido o botão flutuante cobriria campo de formulário.
+const mostrarZap = !/^\/(checkout|pedido\/)/.test(Astro.url.pathname);
 
 const tituloCompleto = titulo === LOJA.nome ? `${LOJA.nome} · Blocos de montar, jogos de cartas e colecionáveis` : `${titulo} · ${LOJA.nome}`;
 const canonico = new URL(Astro.url.pathname, LOJA.url).href;
@@ -59,6 +66,12 @@ const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
     <meta name="twitter:card" content="summary_large_image" />
     {jsonLd && <script type="application/ld+json" set:html={jsonLdSeguro(jsonLd)} />}
     <script is:inline>
+      // Animação de entrada: o estado escondido só vale com "anima", e este cronômetro mostra tudo
+      // à força se o script de revelação (src/scripts/movimento.ts) não assumir em 2,5 s.
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+        document.documentElement.classList.add('anima');
+        window.__anima = setTimeout(function () { document.documentElement.classList.add('anima-fim'); }, 2500);
+      }
       // Foto que não carrega mostra o nome do produto por baixo (ver Foto.astro).
       document.addEventListener('error', function (e) {
         var t = e.target;
@@ -69,11 +82,17 @@ const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
   <body>
     <a class="pular" href="#conteudo">Pular para o conteúdo</a>
     {demo && <div class="faixa-demo" role="note"><strong>Modo demonstração</strong> · produtos reais, pedidos e pagamentos simulados</div>}
-    <Cabecalho categorias={categorias} atual={atual} qtdCarrinho={qtdCarrinho} busca={busca} />
+    <Cabecalho categorias={categorias} atual={atual} qtdCarrinho={qtdCarrinho} busca={busca} nomeCliente={nomeCliente} />
     <main id="conteudo">
       <slot />
     </main>
     <Rodape categorias={categorias} />
+    <GavetaCarrinho />
+    {mostrarZap && (
+      <a class="zap-flutuante" href={LOJA.whatsappLink} rel="noopener" target="_blank" aria-label={`Falar no WhatsApp ${LOJA.whatsapp}`}>
+        <Simbolo nome="zap" tamanho={26} /><span class="zap-texto">Fale no WhatsApp</span>
+      </a>
+    )}
     <div class="torrada" role="status" aria-live="polite" data-torrada></div>
     <script>
       import '../scripts/loja';

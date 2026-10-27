@@ -2,12 +2,12 @@
 import Logo from './Logo.astro';
 import Simbolo from './Simbolo.astro';
 import type { Categoria } from '../lib/loja';
-interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; }
-const { categorias, atual, qtdCarrinho, busca = '' } = Astro.props;
+interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; nomeCliente?: string | null; }
+const { categorias, atual, qtdCarrinho, busca = '', nomeCliente } = Astro.props;
 ---
 <div class="faixa-util">
   <div class="recipiente">
-    <span class="so-largo">Enviamos para todo o Brasil</span>
+    <span class="so-largo">Enviamos para todo o Brasil · postagem em até 2 dias úteis</span>
     <nav aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
   </div>
 </div>
@@ -17,20 +17,30 @@ const { categorias, atual, qtdCarrinho, busca = '' } = Astro.props;
       <Logo />
       <form class="busca" role="search" action="/busca" method="get">
         <label for="busca-topo" class="sr-only">Buscar na loja</label>
-        <input id="busca-topo" type="search" name="q" value={busca} maxlength="80" placeholder="Buscar por nome ou tema" autocomplete="off" />
+        <input id="busca-topo" type="search" name="q" value={busca} maxlength="80" placeholder="Buscar por nome ou tema" autocomplete="off"
+          role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes-topo" />
         <button type="submit" aria-label="Buscar"><Simbolo nome="busca" tamanho={20} /></button>
+        <div class="sugestoes" id="sugestoes-topo" role="listbox" aria-label="Sugestões" data-sugestoes hidden></div>
       </form>
       <nav class="conta" aria-label="Conta">
-        <a href="/pedido" aria-label="Meus pedidos"><Simbolo nome="usuario" /><span class="rotulo" aria-hidden="true">Meus pedidos</span></a>
-        <a href="/carrinho" aria-label={`Carrinho com ${qtdCarrinho} ${qtdCarrinho === 1 ? 'item' : 'itens'}`}>
-          <Simbolo nome="carrinho" /><span class="rotulo" aria-hidden="true">Carrinho</span>
+        {nomeCliente ? (
+          <a href="/conta" class="conta-link"><Simbolo nome="usuario" /><span class="rotulo">Olá, {nomeCliente}<small>Minha conta</small></span></a>
+        ) : (
+          <a href="/entrar" class="conta-link"><Simbolo nome="usuario" /><span class="rotulo">Entrar<small>ou criar conta</small></span></a>
+        )}
+        <a href="/favoritos" aria-label="Favoritos" class="icone-fav">
+          <Simbolo nome="coracao" /><span class="contador" aria-hidden="true" data-fav-contador data-zero>0</span>
+        </a>
+        <a href="/carrinho" data-abre-gaveta aria-label={`Carrinho com ${qtdCarrinho} ${qtdCarrinho === 1 ? 'item' : 'itens'}`}>
+          <Simbolo nome="carrinho" /><span class="rotulo rotulo-simples" aria-hidden="true">Carrinho</span>
           <span class="contador" aria-hidden="true" data-contador data-zero={qtdCarrinho ? undefined : ''}>{qtdCarrinho}</span>
         </a>
       </nav>
     </div>
     <nav class="categorias" aria-label="Categorias">
-      <a href="/" aria-current={atual === 'inicio' ? 'page' : undefined}>Início</a>
+      <a href="/produtos" aria-current={atual === 'produtos' ? 'page' : undefined}>Todos os produtos</a>
       {categorias.map(c => <a href={`/categoria/${c.slug}`} aria-current={atual === c.slug ? 'page' : undefined}>{c.nome}</a>)}
+      <a href="/produtos?faixa=ate-30" class="cat-destaque">Até R$ 30</a>
     </nav>
   </div>
 </header>

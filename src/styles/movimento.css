@@ -1,0 +1,32 @@
+/* Movimento. Regra da casa: animação nunca é a última responsável por deixar algo visível.
+   O estado escondido só existe com a classe "anima" no <html>, que um script do <head> põe junto
+   com um cronômetro de segurança: se o script de revelação não rodar, "anima-fim" mostra tudo. */
+
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+
+html.anima:not(.anima-fim) [data-revelar]:not(.revelado) { opacity: 0; transform: translateY(22px); }
+html.anima [data-revelar] {
+  transition: opacity .65s cubic-bezier(.2, .7, .2, 1), transform .65s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+html.anima [data-revelar="zoom"]:not(.revelado) { transform: scale(.96); }
+html.anima [data-revelar="esquerda"]:not(.revelado) { transform: translateX(-28px); }
+
+@keyframes flutuar { from { transform: translateY(0) rotate(var(--giro, 0deg)); } to { transform: translateY(-10px) rotate(var(--giro, 0deg)); } }
+@keyframes girar { to { transform: rotate(360deg); } }
+@keyframes surgir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes pulsar { 0% { transform: scale(1); } 40% { transform: scale(1.28); } 100% { transform: scale(1); } }
+@keyframes barra { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes brilho { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+
+.flutua { animation: flutuar 3.6s ease-in-out infinite alternate; }
+.flutua.devagar { animation-duration: 5s; }
+.flutua.atraso { animation-delay: -1.8s; }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  html.anima [data-revelar] { opacity: 1 !important; transform: none !important; transition: none; }
+  .flutua, .gira { animation: none !important; }
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}

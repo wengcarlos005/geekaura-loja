@@ -2,7 +2,8 @@
 import Base from '../../layouts/Base.astro';
 import Foto from '../../components/Foto.astro';
 import Simbolo from '../../components/Simbolo.astro';
-import { produto as buscarProduto } from '../../lib/ryzo';
+import Trilho from '../../components/Trilho.astro';
+import { catalogo, produto as buscarProduto, type ProdutoResumo } from '../../lib/ryzo';
 import { envDe } from '../../lib/api';
 import { precoBRL, slugificar } from '../../lib/formato';
 import { LOJA } from '../../lib/loja';
@@ -40,6 +41,11 @@ const jsonLd = {
 };
 const textoEstoque = (escolhida?.estoque ?? 0) <= 5 ? `Últimas ${escolhida?.estoque} unidades` : 'Em estoque, pronto para envio';
 const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
+let relacionados: ProdutoResumo[] = [];
+try {
+  const todos = (await catalogo(envDe(Astro))).filter(x => x.slug !== p.slug && x.disponivel);
+  relacionados = [...todos.filter(x => x.categoria === p.categoria), ...todos.filter(x => x.categoria !== p.categoria)].slice(0, 10);
+} catch { /* sem sugestões */ }
 ---
 <Base titulo={p.titulo} descricao={resumo(p.descricao) || p.titulo} imagem={fotoInicial} jsonLd={jsonLd} atual={categoriaSlug} tipoOg="product">
   <div class="recipiente">
@@ -67,7 +73,10 @@ const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
 
       <div class="compra">
         <p class="card-categoria">{p.categoria}</p>
-        <h1>{p.titulo}</h1>
+        <div class="titulo-linha">
+          <h1>{p.titulo}</h1>
+          <button type="button" class="fav-produto" data-favorito={p.slug} aria-pressed="false" aria-label="Salvar nos favoritos"><Simbolo nome="coracao" tamanho={22} /></button>
+        </div>
         <div class="preco-bloco">
           <span class="preco preco-grande" data-preco>{precoBRL(escolhida?.preco ?? p.preco_a_partir)}</span>
           <span class="nota">no Pix, cartão ou boleto</span>
@@ -143,6 +152,7 @@ const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
       )}
     </section>
   </div>
+  <Trilho id="relacionados" sobrelinha="Continue explorando" titulo="Você também pode gostar" produtos={relacionados} verTodos={{ href: '/produtos' }} />
 </Base>
 
 <style>
@@ -159,6 +169,11 @@ const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
 
   .compra { display: flex; flex-direction: column; gap: 14px; }
   .compra h1 { font-size: 26px; font-weight: 600; line-height: 1.15; }
+  .titulo-linha { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+  .fav-produto { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--cinza-2); background: var(--branco); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color .15s, color .15s; }
+  .fav-produto:hover { border-color: var(--noite); }
+  .galeria-principal :global(.foto img) { transition: opacity .25s ease, transform .4s ease; }
+  @media (hover: hover) { .galeria-principal:hover :global(.foto img) { transform: scale(1.06); } }
   @media (min-width: 900px) { .compra h1 { font-size: 32px; } }
   .preco-bloco { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .preco-grande { font-size: 34px; }
@@ -205,7 +220,11 @@ const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
     if (!caixa) return;
     if (!img) { img = document.createElement('img'); img.alt = ''; img.width = 800; img.height = 800; img.referrerPolicy = 'no-referrer'; caixa.append(img); }
     caixa.classList.remove('falhou');
-    img.src = url;
+    if (img.src === url) return;
+    img.style.opacity = '0';
+    const nova = img;
+    nova.onload = () => { nova.style.opacity = '1'; };
+    nova.src = url;
     for (const m of document.querySelectorAll<HTMLElement>('.miniatura')) m.setAttribute('aria-pressed', String(m.dataset.foto === url));
   }
   document.addEventListener('click', e => {
