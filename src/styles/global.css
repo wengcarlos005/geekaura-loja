@@ -49,6 +49,8 @@ p { margin: 0; }
 .botao-escuro:hover { background: var(--grafite); color: var(--branco); }
 .botao-contorno { background: var(--branco); color: var(--noite); border: 1.5px solid var(--noite); }
 .botao-contorno:hover { background: var(--cinza-1); }
+.botao-branco { background: var(--branco); color: var(--noite); }
+.botao-branco:hover { background: var(--creme); color: var(--noite); box-shadow: 0 10px 22px -12px rgba(17, 16, 20, .45); }
 .botao[disabled], .botao[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .botao-largo { width: 100%; }
 .link-forte { font-weight: 600; text-underline-offset: 4px; }
