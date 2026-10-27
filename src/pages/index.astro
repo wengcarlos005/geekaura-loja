@@ -31,6 +31,9 @@ const ninja = achar(p => /ninja/i.test(p.titulo));
 const natal = daCategoria('natal')[0];
 const cartas = daCategoria('jogos-de-cartas');
 const fotosHeroi = [...fotosDe(dino, 1), ...fotosDe(ninja, 1)];
+// Mini cards ao lado do mascote: produto de verdade, com nome e preço, que levam à página dele.
+const cardsHeroi = [dino, ninja].filter((p): p is ProdutoResumo => !!p && fotosDe(p, 1).length > 0)
+  .map(p => ({ slug: p.slug, foto: fotosDe(p, 1)[0], nome: p.titulo.replace(/ de blocos de montar$| blocos de montar$/i, ''), preco: p.preco_a_partir }));
 const fotosNatal = fotosDe(natal, 3);
 const fotosCartas = cartas.flatMap(p => fotosDe(p, 1)).slice(0, 3);
 const menorNatal = natal ? natal.preco_a_partir : 0;
@@ -88,14 +91,25 @@ const jsonLd = {
           <p class="s-sub s-entra" style="--d:2">Preço de site, em média 10% abaixo dos marketplaces. Pix aprovado na hora e envio para todo o Brasil.</p>
           <div class="s-acoes s-entra" style="--d:3">
             <a class="botao botao-escuro" href="/produtos">Ver todos os produtos</a>
-            <a class="link-forte" href="/categoria/blocos-de-montar">Blocos de montar</a>
+            <a class="botao botao-branco" href="/categoria/blocos-de-montar">Blocos de montar</a>
           </div>
+          <ul class="s-confianca s-entra" style="--d:4">
+            <li><Simbolo nome="estrela" tamanho={16} /> Nota {LOJA.notaShopee} na Shopee</li>
+            <li><Simbolo nome="caminhao" tamanho={16} /> Postagem em até 2 dias úteis</li>
+            <li><Simbolo nome="pix" tamanho={16} /> Pix aprovado na hora</li>
+          </ul>
         </div>
-        <div class="s-arte arte-mascote" aria-hidden="true">
-          <span class="halo"></span>
+        <div class="s-arte arte-mascote">
+          <span class="halo" aria-hidden="true"></span>
+          <span class="chao" aria-hidden="true"></span>
           <img class="mascote flutua devagar" src="/img/auri-640.webp" width="640" height="640" alt="" fetchpriority="high" />
-          {fotosHeroi[0] && <span class="bolha bolha-1 flutua" style="--giro:-6deg"><img src={fotosHeroi[0]} alt="" width="160" height="160" referrerpolicy="no-referrer" /></span>}
-          {fotosHeroi[1] && <span class="bolha bolha-2 flutua atraso" style="--giro:5deg"><img src={fotosHeroi[1]} alt="" width="160" height="160" referrerpolicy="no-referrer" /></span>}
+          {cardsHeroi.map((c, i) => (
+            <a class:list={['mini-card', `mini-${i + 1}`, 'flutua', { atraso: i === 1 }]} style={`--giro:${i ? 4 : -5}deg`} href={`/produto/${c.slug}`}>
+              <span class="mini-foto"><img src={c.foto} alt="" width="200" height="200" referrerpolicy="no-referrer" /></span>
+              <span class="mini-nome">{c.nome}</span>
+              <span class="mini-preco">{precoBRL(c.preco)}</span>
+            </a>
+          ))}
         </div>
       </div>
 
@@ -256,15 +270,40 @@ const jsonLd = {
   .slide { display: grid; grid-template-rows: auto 1fr; min-height: 470px; }
   @media (min-width: 900px) { .slide { grid-template-columns: 1.05fr 1fr; grid-template-rows: none; min-height: 440px; } }
   @media (min-width: 1200px) { .slide { min-height: 480px; } }
-  .slide-abobora { background: var(--abobora); color: var(--noite); }
+  /* Laranja com profundidade: brilho atrás do mascote, um tom mais fundo no canto e uma textura
+     de pinos de bloco bem leve. Chapado, o banner parecia um retângulo de cor. */
+  .slide-abobora {
+    color: var(--noite);
+    background:
+      radial-gradient(circle at 74% 46%, rgba(255, 214, 160, .55), rgba(255, 214, 160, 0) 38%),
+      radial-gradient(circle at 100% 100%, rgba(196, 84, 0, .35), rgba(196, 84, 0, 0) 45%),
+      radial-gradient(rgba(17, 16, 20, .07) 2px, transparent 2.5px) 0 0 / 22px 22px,
+      linear-gradient(135deg, #FF9A33, #FF8A1F 55%, #F57C10);
+  }
+  .s-confianca { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; font-weight: 600; }
+  .s-confianca li { white-space: nowrap; }
+  @media (min-width: 900px) { .slide-abobora .s-texto { padding-bottom: 92px; } }
+  .s-confianca li { display: inline-flex; align-items: center; gap: 6px; }
+  .s-confianca :global(svg) { opacity: .8; }
+  .chao { position: absolute; left: 50%; bottom: 8px; width: 46%; height: 26px; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(120, 50, 0, .35), rgba(120, 50, 0, 0)); }
+  .mini-card { position: absolute; z-index: 3; width: 150px; background: var(--branco); border-radius: 16px; padding: 8px 8px 10px; display: none; flex-direction: column; gap: 4px; text-decoration: none; color: var(--noite); box-shadow: 0 22px 44px -18px rgba(90, 36, 0, .55); transition: box-shadow .25s; }
+  .mini-card:hover { color: var(--noite); box-shadow: 0 28px 52px -16px rgba(90, 36, 0, .7); }
+  .mini-foto { aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--cinza-1); }
+  .mini-foto img { width: 100%; height: 100%; object-fit: contain; }
+  .mini-nome { font-size: 12px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .mini-preco { font-family: var(--fonte-titulo); font-weight: 700; font-size: 16px; color: var(--abobora-escura); }
+  .mini-1 { left: 2%; top: 14%; }
+  .mini-2 { right: 4%; top: 42%; }
+  @media (min-width: 900px) { .mini-card { display: flex; } }
   .slide-noite { background: var(--noite); color: var(--branco); }
   .slide-creme { background: var(--creme); color: var(--noite); }
   .slide-aura { background: #2B1D5C; color: var(--branco); }
   .s-texto { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 22px 18px 4px; }
   @media (min-width: 900px) { .s-texto { padding: 48px 24px 64px 56px; gap: 18px; } }
-  .s-sobre { font-size: 12.5px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; }
-  .slide-noite .s-sobre, .slide-aura .s-sobre { color: var(--abobora); }
-  .slide-creme .s-sobre { color: var(--abobora-escura); }
+  /* Sobrelinha em caixinha: solta sobre a cor do slide ela se perdia. */
+  .s-sobre { align-self: flex-start; font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; background: var(--branco); color: var(--noite); border-radius: var(--r-botao); padding: 6px 10px; box-shadow: 0 6px 16px -10px rgba(17, 16, 20, .5); }
+  .slide-noite .s-sobre, .slide-aura .s-sobre { background: rgba(255, 138, 31, .16); color: var(--abobora); box-shadow: inset 0 0 0 1px rgba(255, 138, 31, .45); }
+  .slide-creme .s-sobre { background: var(--abobora); color: var(--noite); }
   .s-titulo { font-weight: 700; font-size: 27px; line-height: 1.04; letter-spacing: -.3px; max-width: 560px; }
   @media (min-width: 600px) { .s-titulo { font-size: 42px; } }
   @media (min-width: 1200px) { .s-titulo { font-size: 54px; } }
@@ -281,7 +320,7 @@ const jsonLd = {
   @media (max-width: 899px) {
     .slide { min-height: 0; grid-template-rows: auto 220px; }
     .s-arte { min-height: 0; }
-    .s-acoes .link-forte { display: none; }
+    .s-acoes .botao-branco { display: none; }
     .arte-mascote .mascote { width: 40%; bottom: 40px; }
     .arte-mascote .halo { width: 62%; top: 44%; }
     .bolha { width: 70px; }
@@ -334,7 +373,7 @@ const jsonLd = {
     .topo-home { padding-top: 12px; }
     .slide { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: none; min-height: 210px; }
     .s-texto { padding: 18px 4px 34px 16px; gap: 8px; justify-content: center; }
-    .s-sobre, .s-sub, .s-acoes .link-forte { display: none; }
+    .s-sobre, .s-sub, .s-acoes .botao-branco { display: none; }
     .s-titulo { font-size: 20px; line-height: 1.08; letter-spacing: 0; }
     .s-acoes { margin-top: 2px; gap: 8px 10px; }
     .s-acoes .botao { height: 36px; padding: 0 14px; font-size: 13px; }
@@ -375,7 +414,8 @@ const jsonLd = {
   .cat-abobora { background: var(--abobora); }
   .cat-cinza { background: var(--cinza-1); }
   .cat-aura { background: #2B1D5C; color: var(--branco); }
-  .cat:hover { color: inherit; }
+  .cat:hover { color: var(--noite); }
+  .cat-noite:hover, .cat-aura:hover { color: var(--branco); }
   .cat-texto { display: flex; flex-direction: column; gap: 2px; position: relative; z-index: 2; }
   .cat-nome { font-family: var(--fonte-titulo); font-weight: 600; font-size: 19px; line-height: 1.1; }
   @media (min-width: 900px) { .cat-nome { font-size: 22px; } }
@@ -435,7 +475,9 @@ const jsonLd = {
   @media (min-width: 600px) { .colecao { grid-template-columns: 1fr 1.1fr; align-items: center; padding: 28px; } }
   .colecao-escura { background: var(--noite); color: var(--branco); }
   .colecao-creme { background: var(--creme); color: var(--noite); }
-  .colecao:hover { color: inherit; }
+  /* Cor fixa também no hover: 'inherit' pegava a cor escura da página e o texto sumia no fundo preto. */
+  .colecao-escura:hover { color: var(--branco); }
+  .colecao-creme:hover { color: var(--noite); }
   .colecao-texto { display: flex; flex-direction: column; gap: 8px; }
   .colecao-qtd { align-self: flex-start; background: var(--abobora); color: var(--noite); border-radius: var(--r-selo); padding: 4px 8px; font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
   .colecao-nome { font-family: var(--fonte-titulo); font-weight: 600; font-size: 24px; line-height: 1.1; }
