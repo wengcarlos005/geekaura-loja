@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import Foto from '../components/Foto.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { envDe, lerCarrinho } from '../lib/api';
+import { montarCarrinho } from '../lib/carrinhoVisivel';
+import { precoBRL } from '../lib/formato';
+
+let carrinho: Awaited<ReturnType<typeof montarCarrinho>> = { linhas: [], subtotal: 0, ok: false };
+let erroCarga = false;
+try { carrinho = await montarCarrinho(envDe(Astro), await lerCarrinho(Astro)); } catch { erroCarga = true; }
+const { linhas, subtotal, ok } = carrinho;
+const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
+---
+<Base titulo="Carrinho" descricao="Seu carrinho na Geek Aura." noindex>
+  <section class="recipiente">
+    <h1 class="titulo-pagina">Carrinho</h1>
+    {erroCarga ? (
+      <p class="aviso aviso-erro">Não conseguimos carregar o carrinho agora. Atualize a página em instantes.</p>
+    ) : !linhas.length ? (
+      <div class="vazio">
+        <img src="/img/auri-320.webp" width="160" height="160" alt="" />
+        <p>Seu carrinho está vazio.</p>
+        <a class="botao botao-primario" href="/">Ver produtos</a>
+      </div>
+    ) : (
+      <div class="carrinho">
+        <ul class="itens">
+          {linhas.map(l => (
+            <li class:list={['item', { problema: !l.ok }]}>
+              <a class="item-foto" href={l.slug ? `/produto/${l.slug}` : '/'} tabindex="-1" aria-hidden="true"><Foto src={l.foto} alt="" nome="" tamanho={160} /></a>
+              <div class="item-info">
+                <a class="item-nome" href={l.slug ? `/produto/${l.slug}` : '/'}>{l.titulo}</a>
+                {l.rotulo && <p class="nota">Modelo: {l.rotulo}</p>}
+                {!l.a_venda ? <p class="item-aviso">Este produto saiu de venda. Remova para continuar.</p>
+                  : !l.ok ? <p class="item-aviso">{l.disponivel > 0 ? `Só ${l.disponivel === 1 ? 'resta 1 unidade' : `restam ${l.disponivel} unidades`}. Ajuste a quantidade.` : 'Esgotou. Remova para continuar.'}</p>
+                  : null}
+                <div class="item-acoes">
+                  <form method="post" action="/api/carrinho" class="quantidade" data-qtd-item>
+                    <input type="hidden" name="acao" value="definir" />
+                    <input type="hidden" name="sku" value={l.sku} />
+                    <button type="submit" name="qtd" value={l.qtd - 1} aria-label={`Diminuir quantidade de ${l.titulo}`}>−</button>
+                    <span class="qtd-valor" aria-label="Quantidade">{l.qtd}</span>
+                    <button type="submit" name="qtd" value={Math.min(99, l.qtd + 1)} aria-label={`Aumentar quantidade de ${l.titulo}`} disabled={l.a_venda && l.qtd >= l.disponivel}>+</button>
+                  </form>
+                  <form method="post" action="/api/carrinho" data-qtd-item>
+                    <input type="hidden" name="acao" value="remover" />
+                    <input type="hidden" name="sku" value={l.sku} />
+                    <button class="remover" type="submit"><Simbolo nome="lixo" tamanho={18} />Remover</button>
+                  </form>
+                </div>
+              </div>
+              <div class="item-preco">
+                <span class="preco">{precoBRL(l.preco * l.qtd)}</span>
+                {l.qtd > 1 && <span class="nota">{precoBRL(l.preco)} cada</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <aside class="painel resumo">
+          <h2>Resumo</h2>
+          <div class="linha-total"><span>Produtos ({qtdTotal})</span><span>{precoBRL(subtotal)}</span></div>
+          <div class="linha-total"><span>Frete</span><span class="nota">calculado no próximo passo</span></div>
+          <div class="linha-total grande"><span>Subtotal</span><span>{precoBRL(subtotal)}</span></div>
+          {ok ? <a class="botao botao-primario botao-largo" href="/checkout">Fechar pedido</a>
+            : <p class="aviso aviso-erro">Ajuste os itens marcados para fechar o pedido.</p>}
+          <a class="link-forte continuar" href="/">Continuar comprando</a>
+        </aside>
+      </div>
+    )}
+  </section>
+</Base>
+<style>
+  .titulo-pagina { font-size: 30px; font-weight: 700; padding: 24px 0 20px; }
+  .carrinho { display: grid; gap: 24px; }
+  @media (min-width: 900px) { .carrinho { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; } .resumo { position: sticky; top: 16px; } }
+  .itens { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--cinza-2); }
+  .item { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 4px 14px; padding: 16px 0; border-bottom: 1px solid var(--cinza-2); }
+  @media (min-width: 600px) { .item { grid-template-columns: 110px minmax(0, 1fr) auto; } }
+  .item-foto { width: 84px; height: 84px; border-radius: var(--r-botao); overflow: hidden; grid-row: span 2; }
+  @media (min-width: 600px) { .item-foto { width: 110px; height: 110px; } }
+  .item-foto :global(.foto-reserva span) { display: none; }
+  .item-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .item-nome { font-weight: 600; text-decoration: none; line-height: 1.35; }
+  .item-aviso { font-size: 13px; color: var(--erro); font-weight: 600; }
+  .item.problema .item-foto { opacity: .6; }
+  .item-acoes { display: flex; align-items: center; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+  .item-acoes form { margin: 0; }
+  .quantidade { height: 38px; }
+  .quantidade button { width: 36px; }
+  .quantidade button:disabled { color: #B9B4AD; cursor: not-allowed; }
+  .qtd-valor { min-width: 34px; text-align: center; font-weight: 600; }
+  .remover { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; color: var(--cinza-3); cursor: pointer; font-size: 13.5px; padding: 6px 0; }
+  .remover:hover { color: var(--erro); }
+  .item-preco { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  @media (min-width: 600px) { .item-preco { align-items: flex-end; grid-row: span 2; } }
+  .item-preco .preco { font-size: 19px; }
+  .continuar { text-align: center; font-size: 14px; }
+  .vazio { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 32px 0; color: var(--texto-suave); }
+  .vazio img { width: 140px; height: 140px; background: var(--creme); border-radius: var(--r-card); }
+</style>
+<script>
+  import { mexerNoCarrinho, avisar } from '../scripts/loja';
+  // Com JavaScript, mudar quantidade não recarrega pelo redirecionamento do formulário: atualiza e
+  // recarrega a página só depois que o servidor confirmou (o total vem sempre do Ryzo).
+  document.addEventListener('submit', async e => {
+    const form = e.target as HTMLFormElement;
+    if (!form.matches('[data-qtd-item]')) return;
+    e.preventDefault();
+    const dados = new FormData(form, (e as SubmitEvent).submitter);
+    const r = await mexerNoCarrinho({ acao: dados.get('acao'), sku: dados.get('sku'), qtd: Number(dados.get('qtd') ?? 0) });
+    if (r.ok) location.reload();
+    else avisar(r.error || 'Não foi possível atualizar.');
+  });
+</script>

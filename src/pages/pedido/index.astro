@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import { codigoDePedidoValido } from '../../lib/formato';
+import { LOJA } from '../../lib/loja';
+
+const bruto = Astro.url.searchParams.get('codigo');
+const codigo = codigoDePedidoValido(bruto);
+if (codigo) return Astro.redirect(`/pedido/${codigo}`, 303);
+const errado = bruto !== null;
+---
+<Base titulo="Acompanhar pedido" descricao="Acompanhe o pagamento e a entrega do seu pedido na Geek Aura.">
+  <section class="recipiente acompanhar">
+    <img src="/img/auri-320.webp" width="140" height="140" alt="" />
+    <h1>Acompanhar pedido</h1>
+    <p>Digite o código que mandamos no e-mail de confirmação. Ele começa com SITE-.</p>
+    <form method="get" action="/pedido" class="form-codigo">
+      <div class="campo">
+        <label for="codigo">Código do pedido</label>
+        <input id="codigo" name="codigo" required maxlength="25" placeholder="SITE-XXXXXXXXXX" autocapitalize="characters" value={bruto ?? ''} aria-invalid={errado ? 'true' : undefined} aria-describedby={errado ? 'codigo-erro' : undefined} />
+      </div>
+      {errado && <p class="aviso aviso-erro" id="codigo-erro">Esse código não parece certo. Confira no e-mail: SITE- seguido de letras e números.</p>}
+      <button class="botao botao-escuro botao-largo" type="submit">Ver pedido</button>
+    </form>
+    <p class="nota">Não achou o código? Fale com a gente pelo <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp {LOJA.whatsapp}</a> ou pelo e-mail <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a>.</p>
+  </section>
+</Base>
+<style>
+  .acompanhar { max-width: 520px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding-top: 40px; }
+  .acompanhar img { width: 120px; height: 120px; background: var(--creme); border-radius: var(--r-card); }
+  .acompanhar h1 { font-size: 30px; font-weight: 700; }
+  .form-codigo { width: 100%; display: flex; flex-direction: column; gap: 12px; text-align: left; margin: 8px 0; }
+</style>
