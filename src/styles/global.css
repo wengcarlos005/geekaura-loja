@@ -287,6 +287,8 @@ html.sem-rolagem { overflow: hidden; }
 .gaveta-fechar:hover { background: var(--cinza-2); transform: rotate(90deg); }
 .gaveta-aviso { margin: 12px 20px 0; background: #EAF3E7; color: #24451D; border-radius: var(--r-card); padding: 10px 12px; display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600; animation: surgir .35s ease; }
 .gaveta-itens { list-style: none; margin: 0; padding: 4px 20px; overflow-y: auto; flex: 1; }
+/* Lista vazia não ocupa espaço: senão o aviso de carrinho vazio vai parar no pé da gaveta. */
+.gaveta-itens:empty { display: none; }
 .g-item { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--cinza-2); }
 .g-foto { width: 72px; height: 72px; border-radius: var(--r-botao); }
 .g-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -300,7 +302,7 @@ html.sem-rolagem { overflow: hidden; }
 .g-remover { border: 0; background: none; color: var(--cinza-3); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 0; }
 .g-preco { font-family: var(--fonte-titulo); font-size: 16px; white-space: nowrap; }
 .gaveta-vazia { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; color: var(--texto-suave); }
-.gaveta-vazia img { width: 120px; height: 120px; background: var(--creme); border-radius: var(--r-card); }
+.gaveta-vazia img { width: 120px; height: 120px; border-radius: var(--r-card); }
 .gaveta-rodape { border-top: 1px solid var(--cinza-2); padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 10px; background: var(--branco); }
 .gaveta-rodape .botao { height: 48px; }
 

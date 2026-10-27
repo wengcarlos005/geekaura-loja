@@ -9,11 +9,10 @@ const { titulo, subtitulo } = Astro.props;
   <div class="acesso-caixa" data-revelar="zoom">
     <aside class="acesso-lado">
       <img class="acesso-mascote flutua devagar" src="/img/auri-320.webp" width="320" height="320" alt="" />
-      <p class="acesso-lado-titulo">Com a conta Geek Aura você</p>
       <ul>
-        <li><Simbolo nome="pacote" tamanho={20} /> acompanha todos os pedidos num lugar só</li>
-        <li><Simbolo nome="mapa" tamanho={20} /> salva endereços e compra mais rápido</li>
-        <li><Simbolo nome="coracao" tamanho={20} /> guarda os favoritos para depois</li>
+        <li><Simbolo nome="pacote" tamanho={20} /> Acompanhe seus pedidos em um lugar só</li>
+        <li><Simbolo nome="mapa" tamanho={20} /> Salve seu endereço e compre mais rápido</li>
+        <li><Simbolo nome="coracao" tamanho={20} /> Guarde seus favoritos para depois</li>
       </ul>
     </aside>
     <div class="acesso-form">
@@ -28,13 +27,18 @@ const { titulo, subtitulo } = Astro.props;
   .acesso-caixa { display: grid; border: 1px solid var(--cinza-2); border-radius: 16px; overflow: hidden; max-width: 980px; margin: 0 auto; background: var(--branco); }
   @media (min-width: 860px) { .acesso-caixa { grid-template-columns: 1fr 1.15fr; } }
   .acesso-lado { position: relative; background: var(--abobora); color: var(--noite); padding: 24px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
-  @media (max-width: 859px) { .acesso-lado ul, .acesso-lado-titulo { display: none; } .acesso-lado { min-height: 120px; } }
   .acesso-mascote { width: 120px; height: 120px; align-self: center; }
   @media (min-width: 860px) { .acesso-lado { padding: 40px; justify-content: center; gap: 18px; } .acesso-mascote { width: 200px; height: 200px; } }
-  .acesso-lado-titulo { font-family: var(--fonte-titulo); font-weight: 600; font-size: 22px; }
-  .acesso-lado ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 15px; }
-  .acesso-lado li { display: flex; gap: 10px; align-items: flex-start; }
-  .acesso-lado li :global(svg) { flex-shrink: 0; margin-top: 1px; }
+  .acesso-lado ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 16px; font-weight: 600; }
+  .acesso-lado li { display: flex; gap: 10px; align-items: center; }
+  .acesso-lado li :global(svg) { flex-shrink: 0; width: 34px; height: 34px; padding: 7px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+  /* No celular: mascote pequeno ao lado da lista, para o formulário aparecer logo. */
+  @media (max-width: 859px) {
+    .acesso-lado { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 12px; padding: 16px; }
+    .acesso-mascote { width: 76px; height: 76px; }
+    .acesso-lado ul { gap: 6px; font-size: 13.5px; }
+    .acesso-lado li :global(svg) { width: 26px; height: 26px; padding: 5px; }
+  }
   .acesso-form { padding: 28px 22px 32px; display: flex; flex-direction: column; gap: 12px; }
   @media (min-width: 860px) { .acesso-form { padding: 44px 48px; } }
   .acesso-form h1 { font-size: 30px; font-weight: 700; }
