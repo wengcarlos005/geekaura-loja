@@ -9,20 +9,22 @@ const itens = [
 ] as const;
 ---
 <section class="beneficios" aria-label="Por que comprar no site">
-  <div class="recipiente beneficios-grade">
+  <div class="recipiente"><div class="beneficios-grade">
     {itens.map(i => (
-      <div class="beneficio">
+      <div class="beneficio" data-revelar>
         <Simbolo nome={i.icone} tamanho={26} />
         <div><p class="beneficio-titulo">{i.titulo}</p><p class="beneficio-texto">{i.texto}</p></div>
       </div>
     ))}
-  </div>
+  </div></div>
 </section>
 <style>
-  .beneficios { border-top: 1px solid var(--cinza-2); border-bottom: 1px solid var(--cinza-2); }
+  .beneficios { margin-top: 20px; }
+  .beneficios-grade { border: 1px solid var(--cinza-2); border-radius: 14px; padding-left: 18px; padding-right: 18px; }
   .beneficios-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 18px; padding-bottom: 18px; }
   @media (min-width: 900px) { .beneficios-grade { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .beneficio { display: flex; gap: 12px; align-items: center; }
+  .beneficio :global(svg) { width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: var(--creme); color: var(--abobora-escura); }
   .beneficio :global(svg) { flex-shrink: 0; }
   .beneficio-titulo { font-weight: 600; font-size: 14px; line-height: 1.3; }
   .beneficio-texto { font-size: 12.5px; color: var(--cinza-3); line-height: 1.35; }

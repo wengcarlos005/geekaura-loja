@@ -2,7 +2,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { CABECALHOS_FIXOS, carimbarNonce, gerarNonce, politica } from './lib/seguranca';
 
-const SEM_CACHE = /^\/(carrinho|checkout|pedido|api)(\/|$)/;
+const SEM_CACHE = /^\/(carrinho|checkout|pedido|api|conta|entrar|cadastro|recuperar-senha|favoritos)(\/|$)/;
 
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const nonce = gerarNonce();

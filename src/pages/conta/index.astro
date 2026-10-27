@@ -1,0 +1,127 @@
+---
+import Base from '../../layouts/Base.astro';
+import PainelConta from '../../components/PainelConta.astro';
+import Simbolo from '../../components/Simbolo.astro';
+import { clienteAtual, gravarSessao, lerSessao, pedidosDoCliente } from '../../lib/conta';
+import { envDe } from '../../lib/api';
+import { precoBRL } from '../../lib/formato';
+import { dataCurta, STATUS_PEDIDO } from '../../lib/statusPedido';
+import type { Pedido } from '../../lib/ryzo';
+
+const env = envDe(Astro);
+const sessao = await lerSessao(Astro);
+const cliente = await clienteAtual(env, sessao).catch(() => undefined);
+if (!sessao || cliente === null) { await gravarSessao(Astro, null); return Astro.redirect('/entrar?volta=/conta', 303); }
+
+let pedidos: Pedido[] = [];
+let falhou = cliente === undefined;
+if (!falhou) { try { pedidos = await pedidosDoCliente(env, sessao); } catch { falhou = true; } }
+const nome = cliente?.nome ?? sessao.n;
+---
+<Base titulo="Meus pedidos" descricao="Seus pedidos na Geek Aura." noindex>
+  <PainelConta atual="pedidos" nome={nome} email={cliente?.email ?? ''}>
+    <div class="conta-cabeca">
+      <h1>Olá, {sessao.n}</h1>
+      <p class="nota">Aqui ficam todos os pedidos feitos com a sua conta.</p>
+    </div>
+
+    {cliente && !cliente.email_verificado && (
+      <div class="confirmar-email" data-confirmar-email>
+        <div>
+          <strong>Confirme seu e-mail para ver pedidos antigos</strong>
+          <p class="nota">Pedidos feitos antes de criar a conta, com o mesmo e-mail, aparecem aqui depois da confirmação.</p>
+        </div>
+        <form class="confirmar-form" data-confirmar-form hidden novalidate>
+          <label class="sr-only" for="codigo-email">Código de 6 números</label>
+          <input id="codigo-email" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" class="campo-codigo" />
+          <button class="botao botao-escuro" type="submit">Confirmar</button>
+        </form>
+        <button class="botao botao-contorno" type="button" data-enviar-codigo>Enviar código</button>
+        <p class="aviso aviso-erro" data-erro hidden role="alert"></p>
+      </div>
+    )}
+
+    {falhou ? (
+      <p class="aviso aviso-info">Não conseguimos carregar seus pedidos agora. Atualize a página em instantes.</p>
+    ) : pedidos.length === 0 ? (
+      <div class="sem-pedidos">
+        <img src="/img/auri-320.webp" width="140" height="140" alt="" />
+        <p><strong>Você ainda não fez pedidos com esta conta.</strong></p>
+        <p class="nota">Quando comprar, o pedido aparece aqui com o status do pagamento e o rastreio.</p>
+        <a class="botao botao-primario" href="/produtos">Ver produtos</a>
+      </div>
+    ) : (
+      <ul class="lista-pedidos">
+        {pedidos.map(p => {
+          const st = STATUS_PEDIDO[p.status];
+          const qtd = p.itens.reduce((s, i) => s + i.qtd, 0);
+          return (
+            <li data-revelar>
+              <a class="pedido-card" href={`/pedido/${p.codigo}`}>
+                <span class="pc-topo">
+                  <span class="pc-codigo">{p.codigo}</span>
+                  <span class:list={['status', st.classe]}>{st.rotulo}</span>
+                </span>
+                <span class="pc-itens">{p.itens.slice(0, 2).map(i => `${i.qtd}× ${i.titulo}${i.rotulo ? ` (${i.rotulo})` : ''}`).join(' · ')}{p.itens.length > 2 && ` e mais ${p.itens.length - 2}`}</span>
+                <span class="pc-rodape">
+                  <span class="nota">{dataCurta(p.criado_em)} · {qtd} {qtd === 1 ? 'item' : 'itens'}{p.envio?.rastreio && ` · rastreio ${p.envio.rastreio}`}</span>
+                  <strong class="pc-total">{precoBRL(p.total)}</strong>
+                </span>
+                <span class="pc-ver">Ver pedido <Simbolo nome="direita" tamanho={16} /></span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </PainelConta>
+</Base>
+
+<style>
+  .conta-cabeca { display: flex; flex-direction: column; gap: 4px; }
+  .confirmar-email { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; background: var(--creme); border: 1px solid var(--creme-escuro); border-radius: var(--r-card); padding: 16px; }
+  .confirmar-email > div { flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px; }
+  .confirmar-form { display: flex; gap: 8px; margin: 0; }
+  .confirmar-form[hidden] { display: none; }
+  .confirmar-form input { width: 130px; height: 46px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 12px; }
+  .confirmar-email .aviso { flex-basis: 100%; }
+  .sem-pedidos { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 32px 16px; border: 1px dashed var(--cinza-2); border-radius: var(--r-card); }
+  .sem-pedidos img { width: 120px; height: 120px; background: var(--creme); border-radius: var(--r-card); }
+  .lista-pedidos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .pedido-card { display: grid; gap: 8px; border: 1px solid var(--cinza-2); border-radius: var(--r-card); padding: 16px; text-decoration: none; transition: border-color .2s, box-shadow .2s, transform .2s; }
+  .pedido-card:hover { border-color: var(--noite); box-shadow: 0 12px 28px -18px rgba(17, 16, 20, .4); transform: translateY(-2px); color: var(--noite); }
+  .pc-topo, .pc-rodape { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+  .pc-codigo { font-family: var(--fonte-titulo); font-weight: 600; font-size: 17px; letter-spacing: .3px; }
+  .pc-itens { font-size: 14px; color: var(--texto-suave); }
+  .pc-total { font-family: var(--fonte-titulo); font-size: 19px; }
+  .pc-ver { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 600; color: var(--abobora-escura); }
+  .status { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 4px 10px; }
+  .st-espera { background: var(--creme); color: var(--abobora-escura); border: 1px solid var(--creme-escuro); }
+  .st-ok { background: #EAF3E7; color: #24451D; }
+  .st-falha { background: #FDECEA; color: #7A1A12; }
+</style>
+
+<script>
+  import { enviarJson, mostrarErro } from '../../scripts/formConta';
+  const caixa = document.querySelector<HTMLElement>('[data-confirmar-email]');
+  const form = caixa?.querySelector<HTMLFormElement>('[data-confirmar-form]');
+  const enviar = caixa?.querySelector<HTMLButtonElement>('[data-enviar-codigo]');
+  enviar?.addEventListener('click', async () => {
+    enviar.disabled = true;
+    const d = await enviarJson('/api/conta/email', { acao: 'enviar' }).catch(() => ({ ok: false, error: 'Sem conexão.' }));
+    enviar.disabled = false;
+    if (!d.ok) { mostrarErro(caixa!, d.error || 'Não foi possível enviar agora.'); return; }
+    mostrarErro(caixa!, null);
+    if (d.ja_confirmado) { location.reload(); return; }
+    form!.hidden = false;
+    enviar.textContent = 'Reenviar código';
+    form!.querySelector('input')?.focus();
+  });
+  form?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const codigo = (form.elements.namedItem('codigo') as HTMLInputElement).value;
+    const d = await enviarJson('/api/conta/email', { acao: 'confirmar', codigo }).catch(() => ({ ok: false, error: 'Sem conexão.' }));
+    if (!d.ok) { mostrarErro(caixa!, d.error || 'Código inválido.'); return; }
+    location.reload();
+  });
+</script>

@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import PainelAcesso from '../components/PainelAcesso.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { destinoSeguro, lerSessao } from '../lib/conta';
+
+const volta = destinoSeguro(Astro.url.searchParams.get('volta'));
+if (await lerSessao(Astro)) return Astro.redirect(volta, 303);
+---
+<Base titulo="Criar conta" descricao="Crie sua conta na Geek Aura." noindex>
+  <PainelAcesso titulo="Criar conta" subtitulo="Leva menos de um minuto. Depois é só entrar com e-mail e senha.">
+    <form class="form-conta" data-form-conta data-endpoint="/api/conta/cadastro" data-volta={volta} novalidate>
+      <div class="campo"><label for="nome">Nome completo</label><input id="nome" name="nome" autocomplete="name" maxlength="120" required minlength="2" /></div>
+      <div class="campo"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" required /></div>
+      <div class="campo"><label for="telefone">Celular com DDD <span class="opcional">(opcional)</span></label><input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="16" placeholder="(21) 90000-0000" data-mascara="tel" /></div>
+      <div class="campo">
+        <label for="senha">Senha</label>
+        <div class="campo-senha">
+          <input id="senha" name="senha" type="password" autocomplete="new-password" minlength="8" maxlength="128" required aria-describedby="senha-ajuda" />
+          <button type="button" class="ver-senha" data-ver-senha aria-pressed="false" aria-label="Mostrar senha"><Simbolo nome="olho" tamanho={20} /></button>
+        </div>
+        <span class="ajuda" id="senha-ajuda">Pelo menos 8 caracteres. Uma frase curta é mais segura e fácil de lembrar.</span>
+      </div>
+      <label class="aceite"><input type="checkbox" name="aceite" required /> <span>Li e aceito os <a href="/termos" target="_blank">termos de uso</a> e a <a href="/privacidade" target="_blank">política de privacidade</a>.</span></label>
+      <p class="aviso aviso-erro" data-erro hidden role="alert"></p>
+      <button class="botao botao-primario botao-largo" type="submit">Criar minha conta</button>
+    </form>
+    <p class="troca">Já tem conta? <a class="link-forte" href={`/entrar${volta !== '/conta' ? `?volta=${encodeURIComponent(volta)}` : ''}`}>Entrar</a></p>
+  </PainelAcesso>
+</Base>
+<script>import '../scripts/formConta';</script>

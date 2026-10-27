@@ -1,0 +1,45 @@
+---
+// Fileira horizontal de produtos com rolagem por arraste (celular) e setas (computador).
+import CardProduto from './CardProduto.astro';
+import Simbolo from './Simbolo.astro';
+import type { ProdutoResumo } from '../lib/ryzo';
+interface Props { titulo: string; sobrelinha?: string; produtos: ProdutoResumo[]; verTodos?: { href: string; rotulo?: string }; id?: string; }
+const { titulo, sobrelinha, produtos, verTodos, id } = Astro.props;
+const idTitulo = `trilho-${id ?? Math.random().toString(36).slice(2, 8)}`;
+---
+{produtos.length > 0 && (
+  <section class="recipiente secao" aria-labelledby={idTitulo} data-trilho-secao>
+    <div class="trilho-cabeca">
+      <div data-revelar="esquerda">
+        {sobrelinha && <p class="sobrelinha">{sobrelinha}</p>}
+        <h2 id={idTitulo}>{titulo}</h2>
+      </div>
+      <div class="trilho-acoes">
+        {verTodos && <a class="ver-todos" href={verTodos.href}>{verTodos.rotulo ?? 'Ver todos'} <Simbolo nome="direita" tamanho={18} /></a>}
+        {produtos.length > 4 && <>
+          <button type="button" class="seta" data-seta="-1" aria-label="Anteriores" disabled><Simbolo nome="esquerda" tamanho={20} /></button>
+          <button type="button" class="seta" data-seta="1" aria-label="Próximos"><Simbolo nome="direita" tamanho={20} /></button>
+        </>}
+      </div>
+    </div>
+    <div class="trilho" data-trilho tabindex="-1">
+      {produtos.map(p => <CardProduto produto={p} />)}
+    </div>
+  </section>
+)}
+
+<script>
+  for (const secao of document.querySelectorAll<HTMLElement>('[data-trilho-secao]')) {
+    const trilho = secao.querySelector<HTMLElement>('[data-trilho]');
+    const setas = secao.querySelectorAll<HTMLButtonElement>('[data-seta]');
+    if (!trilho || !setas.length) continue;
+    const atualizar = () => {
+      setas[0].disabled = trilho.scrollLeft <= 4;
+      setas[1].disabled = trilho.scrollLeft + trilho.clientWidth >= trilho.scrollWidth - 4;
+    };
+    for (const s of setas) s.addEventListener('click', () => trilho.scrollBy({ left: Number(s.dataset.seta) * trilho.clientWidth * 0.8 }));
+    trilho.addEventListener('scroll', atualizar, { passive: true });
+    addEventListener('resize', atualizar);
+    atualizar();
+  }
+</script>

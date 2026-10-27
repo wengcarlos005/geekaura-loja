@@ -1,0 +1,58 @@
+---
+// Favoritos ficam no navegador (localStorage), então a página traz o catálogo inteiro escondido e o
+// script mostra só os salvos. O catálogo é pequeno; quando crescer, vira uma rota que recebe slugs.
+import Base from '../layouts/Base.astro';
+import CardProduto from '../components/CardProduto.astro';
+import { catalogo, type ProdutoResumo } from '../lib/ryzo';
+import { envDe } from '../lib/api';
+
+let produtos: ProdutoResumo[] = [];
+try { produtos = await catalogo(envDe(Astro)); } catch { /* lista vazia: o aviso abaixo cobre */ }
+---
+<Base titulo="Favoritos" descricao="Os produtos que você salvou na Geek Aura." noindex>
+  <section class="recipiente favoritos">
+    <div class="fav-cabeca">
+      <h1>Favoritos</h1>
+      <p class="nota" data-fav-resumo>Os produtos que você salvar com o coração aparecem aqui.</p>
+    </div>
+    <div class="grade" data-fav-grade>
+      {produtos.map(p => <div class="fav-item" data-fav-slug={p.slug} hidden><CardProduto produto={p} revelar={false} /></div>)}
+    </div>
+    <div class="vazio" data-fav-vazio>
+      <img src="/img/auri-320.webp" width="160" height="160" alt="" loading="lazy" />
+      <p><strong>Nenhum favorito ainda.</strong></p>
+      <p class="nota">Toque no coração de um produto para guardar e comparar depois.</p>
+      <a class="botao botao-primario" href="/produtos">Ver produtos</a>
+    </div>
+    <p class="nota fav-aviso">Os favoritos ficam salvos neste aparelho.</p>
+  </section>
+</Base>
+<style>
+  .favoritos { padding-top: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .favoritos h1 { font-size: 34px; font-weight: 700; }
+  .fav-item { display: contents; }
+  .fav-item[hidden] { display: none; }
+  .vazio { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 32px 0; }
+  .vazio[hidden] { display: none; }
+  .vazio img { width: 140px; height: 140px; background: var(--creme); border-radius: var(--r-card); }
+  .fav-aviso { text-align: center; }
+</style>
+<script>
+  import { lerFavoritos } from '../scripts/loja';
+  function mostrar() {
+    const favs = lerFavoritos();
+    const itens = document.querySelectorAll<HTMLElement>('[data-fav-slug]');
+    let n = 0;
+    // Ordem de quem foi salvo por último primeiro.
+    const grade = document.querySelector<HTMLElement>('[data-fav-grade]')!;
+    for (const slug of [...favs].reverse()) {
+      const el = grade.querySelector<HTMLElement>(`[data-fav-slug="${CSS.escape(slug)}"]`);
+      if (el) grade.prepend(el);
+    }
+    for (const el of itens) { const ok = favs.includes(el.dataset.favSlug!); el.hidden = !ok; if (ok) n++; }
+    document.querySelector<HTMLElement>('[data-fav-vazio]')!.hidden = n > 0;
+    document.querySelector('[data-fav-resumo]')!.textContent = n ? `${n} ${n === 1 ? 'produto salvo' : 'produtos salvos'}` : 'Os produtos que você salvar com o coração aparecem aqui.';
+  }
+  document.addEventListener('favoritos', mostrar);
+  mostrar();
+</script>

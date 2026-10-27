@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import PainelAcesso from '../components/PainelAcesso.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { destinoSeguro, lerSessao } from '../lib/conta';
+import { modoDemo } from '../lib/ryzo';
+import { envDe } from '../lib/api';
+
+const volta = destinoSeguro(Astro.url.searchParams.get('volta'));
+if (await lerSessao(Astro)) return Astro.redirect(volta, 303);
+const demo = modoDemo(envDe(Astro));
+---
+<Base titulo="Entrar" descricao="Entre na sua conta Geek Aura." noindex>
+  <PainelAcesso titulo="Entrar" subtitulo="Bem-vindo de volta. Entre para acompanhar pedidos e comprar mais rápido.">
+    {demo && <p class="aviso aviso-info">Modo demonstração: qualquer e-mail e senha de 8 caracteres entram.</p>}
+    <form class="form-conta" data-form-conta data-endpoint="/api/conta/entrar" data-volta={volta} novalidate>
+      <div class="campo"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" required /></div>
+      <div class="campo">
+        <div class="rotulo-linha"><label for="senha">Senha</label><a href="/recuperar-senha" class="nota">Esqueci a senha</a></div>
+        <div class="campo-senha">
+          <input id="senha" name="senha" type="password" autocomplete="current-password" minlength="8" maxlength="128" required />
+          <button type="button" class="ver-senha" data-ver-senha aria-pressed="false" aria-label="Mostrar senha"><Simbolo nome="olho" tamanho={20} /></button>
+        </div>
+      </div>
+      <p class="aviso aviso-erro" data-erro hidden role="alert"></p>
+      <button class="botao botao-primario botao-largo" type="submit">Entrar</button>
+    </form>
+    <p class="troca">Ainda não tem conta? <a class="link-forte" href={`/cadastro${volta !== '/conta' ? `?volta=${encodeURIComponent(volta)}` : ''}`}>Criar conta grátis</a></p>
+    <p class="nota">Comprou sem conta? <a href="/pedido">Acompanhe pelo código do pedido</a>.</p>
+  </PainelAcesso>
+</Base>
+<script>import '../scripts/formConta';</script>

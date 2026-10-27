@@ -1,0 +1,136 @@
+---
+// Carrossel do topo. Os slides são filhos .slide (vêm pelo slot). A base é rolagem com "snap":
+// sem JavaScript dá para arrastar no celular e rolar no computador. O script põe setas, bolinhas
+// com barra de tempo e a troca automática, que para com o mouse em cima, com foco dentro, quando
+// a aba fica escondida e para quem pediu menos movimento.
+import Simbolo from './Simbolo.astro';
+interface Props { rotulo: string; intervalo?: number; }
+const { rotulo, intervalo = 7000 } = Astro.props;
+---
+<section class="carrossel" aria-roledescription="carrossel" aria-label={rotulo} data-carrossel data-intervalo={intervalo}>
+  <div class="carrossel-trilho" data-carrossel-trilho aria-live="off">
+    <slot />
+  </div>
+  <div class="carrossel-controles" data-carrossel-controles hidden>
+    <button type="button" class="c-seta" data-c-passo="-1" aria-label="Slide anterior"><Simbolo nome="esquerda" tamanho={20} /></button>
+    <div class="c-pontos" data-c-pontos role="group" aria-label="Escolher slide"></div>
+    <button type="button" class="c-seta" data-c-passo="1" aria-label="Próximo slide"><Simbolo nome="direita" tamanho={20} /></button>
+    <button type="button" class="c-pausa" data-c-pausa aria-label="Pausar troca automática"><span data-c-icone-pausa><Simbolo nome="pausa" tamanho={18} /></span><span data-c-icone-tocar hidden><Simbolo nome="tocar" tamanho={16} /></span></button>
+  </div>
+</section>
+
+<style is:global>
+  .carrossel { position: relative; }
+  .carrossel-trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 14px; }
+  .carrossel-trilho::-webkit-scrollbar { display: none; }
+  .slide { scroll-snap-align: start; scroll-snap-stop: always; position: relative; overflow: hidden; }
+  .carrossel-controles { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(6px); border-radius: 999px; padding: 4px; box-shadow: 0 8px 24px -10px rgba(17, 16, 20, .35); z-index: 5; }
+  .carrossel-controles[hidden] { display: none; }
+  .c-seta, .c-pausa { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--noite); transition: background-color .15s; }
+  .c-seta:hover, .c-pausa:hover { background: var(--cinza-1); }
+  .c-pontos { display: flex; gap: 6px; padding: 0 4px; }
+  .c-ponto { position: relative; width: 26px; height: 8px; border-radius: 999px; border: 0; background: var(--cinza-2); overflow: hidden; cursor: pointer; padding: 0; transition: width .3s ease; }
+  .c-ponto[aria-current="true"] { width: 44px; }
+  .c-ponto i { position: absolute; inset: 0; background: var(--abobora); transform-origin: left; transform: scaleX(0); }
+  .c-ponto[aria-current="true"] i { transform: scaleX(1); }
+  .carrossel.tocando .c-ponto[aria-current="true"] i { animation: barra var(--intervalo, 7s) linear forwards; }
+  .carrossel.parado .c-ponto[aria-current="true"] i { animation-play-state: paused; }
+  /* Conteúdo do slide entra quando ele fica ativo. */
+  html.anima .slide:not(.ativo) .s-entra { opacity: 0; }
+  html.anima .slide.ativo .s-entra { animation: surgir .7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--d, 0) * 90ms); }
+  @media (prefers-reduced-motion: reduce) { html.anima .slide .s-entra { opacity: 1; animation: none; } }
+</style>
+
+<script>
+  for (const raiz of document.querySelectorAll<HTMLElement>('[data-carrossel]')) {
+    const trilho = raiz.querySelector<HTMLElement>('[data-carrossel-trilho]')!;
+    const slides = [...trilho.querySelectorAll<HTMLElement>(':scope > .slide')];
+    const controles = raiz.querySelector<HTMLElement>('[data-carrossel-controles]')!;
+    const pontos = raiz.querySelector<HTMLElement>('[data-c-pontos]')!;
+    const pausa = raiz.querySelector<HTMLButtonElement>('[data-c-pausa]')!;
+    const intervalo = Number(raiz.dataset.intervalo) || 7000;
+    const reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    raiz.style.setProperty('--intervalo', `${intervalo}ms`);
+
+    slides.forEach((s, i) => {
+      s.setAttribute('role', 'group');
+      s.setAttribute('aria-roledescription', 'slide');
+      s.setAttribute('aria-label', `${i + 1} de ${slides.length}`);
+    });
+    if (slides.length < 2) { slides[0]?.classList.add('ativo'); continue; }
+
+    const botoes = slides.map((_, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'c-ponto';
+      b.setAttribute('aria-label', `Ir para o slide ${i + 1}`);
+      b.append(document.createElement('i'));
+      b.addEventListener('click', () => { ir(i); reiniciar(); });
+      pontos.append(b);
+      return b;
+    });
+    controles.hidden = false;
+
+    let atual = -1;
+    let usuarioPausou = reduzido;
+    let relogio: ReturnType<typeof setTimeout> | undefined;
+    let pausaToque = false;
+
+    function marcar(i: number) {
+      if (i === atual) return;
+      atual = i;
+      slides.forEach((s, j) => {
+        s.classList.toggle('ativo', j === i);
+        // Slide fora da tela não recebe Tab: os links dele não roubam o foco.
+        s.inert = j !== i;
+      });
+      botoes.forEach((b, j) => {
+        b.setAttribute('aria-current', String(j === i));
+        // Reinicia a barra de tempo do ponto ativo.
+        const barra = b.querySelector('i')!;
+        barra.style.animation = 'none'; void barra.offsetWidth; barra.style.animation = '';
+      });
+    }
+    function ir(i: number) {
+      const n = (i + slides.length) % slides.length;
+      trilho.scrollTo({ left: slides[n].offsetLeft, behavior: reduzido ? 'auto' : 'smooth' });
+      marcar(n);
+    }
+    function parar() { clearTimeout(relogio); raiz.classList.remove('tocando'); }
+    function reiniciar() {
+      parar();
+      if (usuarioPausou || pausaToque || document.hidden || raiz.matches(':hover') || raiz.contains(document.activeElement)) { raiz.classList.add('parado'); return; }
+      raiz.classList.remove('parado');
+      raiz.classList.add('tocando');
+      relogio = setTimeout(() => { ir(atual + 1); reiniciar(); }, intervalo);
+    }
+
+    const io = new IntersectionObserver(es => {
+      for (const e of es) if (e.isIntersecting && e.intersectionRatio >= 0.6) { marcar(slides.indexOf(e.target as HTMLElement)); reiniciar(); }
+    }, { root: trilho, threshold: [0.6] });
+    slides.forEach(s => io.observe(s));
+
+    raiz.querySelectorAll<HTMLButtonElement>('[data-c-passo]').forEach(b => b.addEventListener('click', () => { ir(atual + Number(b.dataset.cPasso)); reiniciar(); }));
+    pausa.addEventListener('click', () => {
+      usuarioPausou = !usuarioPausou;
+      pausa.setAttribute('aria-label', usuarioPausou ? 'Retomar troca automática' : 'Pausar troca automática');
+      raiz.querySelector<HTMLElement>('[data-c-icone-pausa]')!.hidden = usuarioPausou;
+      raiz.querySelector<HTMLElement>('[data-c-icone-tocar]')!.hidden = !usuarioPausou;
+      reiniciar();
+    });
+    if (reduzido) { raiz.querySelector<HTMLElement>('[data-c-icone-pausa]')!.hidden = true; raiz.querySelector<HTMLElement>('[data-c-icone-tocar]')!.hidden = false; }
+    raiz.addEventListener('mouseenter', reiniciar);
+    raiz.addEventListener('mouseleave', () => setTimeout(reiniciar, 0));
+    raiz.addEventListener('focusin', reiniciar);
+    raiz.addEventListener('focusout', () => setTimeout(reiniciar, 0));
+    // Quem arrasta com o dedo está lendo: a troca automática espera um pouco antes de voltar.
+    let tempoToque: ReturnType<typeof setTimeout> | undefined;
+    trilho.addEventListener('touchstart', () => {
+      pausaToque = true; reiniciar(); clearTimeout(tempoToque);
+      tempoToque = setTimeout(() => { pausaToque = false; reiniciar(); }, 12000);
+    }, { passive: true });
+    document.addEventListener('visibilitychange', reiniciar);
+    marcar(0);
+    reiniciar();
+  }
+</script>

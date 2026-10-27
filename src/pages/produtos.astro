@@ -1,0 +1,161 @@
+---
+// Todos os produtos, com filtro por categoria, faixa de preço e disponibilidade. Filtro é link (GET):
+// funciona sem JavaScript, volta com o botão do navegador e pode ser compartilhado.
+import Base from '../layouts/Base.astro';
+import CardProduto from '../components/CardProduto.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { catalogo, type ProdutoResumo } from '../lib/ryzo';
+import { envDe } from '../lib/api';
+import { categoriasDoCatalogo, FAIXAS } from '../lib/loja';
+import { naFaixa, ordenar } from '../lib/listagem';
+import { slugificar } from '../lib/formato';
+
+const sp = Astro.url.searchParams;
+let todos: ProdutoResumo[] = [];
+let falhou = false;
+try { todos = await catalogo(envDe(Astro)); } catch { falhou = true; }
+const categorias = categoriasDoCatalogo(todos);
+
+const cat = categorias.find(c => c.slug === sp.get('categoria'))?.slug ?? '';
+const faixa = FAIXAS.find(f => f.slug === sp.get('faixa'))?.slug ?? '';
+const soEstoque = sp.get('estoque') === '1';
+const ordemBruta = sp.get('ordem');
+const ordem = ordemBruta === 'menor' || ordemBruta === 'maior' ? ordemBruta : '';
+
+const filtrar = (o: { cat?: string; faixa?: string; estoque?: boolean }) => {
+  let r = todos;
+  if (o.cat) r = r.filter(p => slugificar(p.categoria) === o.cat);
+  if (o.faixa) r = naFaixa(r, o.faixa);
+  if (o.estoque) r = r.filter(p => p.disponivel);
+  return r;
+};
+const achados = ordenar(filtrar({ cat, faixa, estoque: soEstoque }), ordem);
+
+/** Link com um filtro trocado e os outros mantidos. */
+const link = (muda: Record<string, string | null>) => {
+  const p = new URLSearchParams();
+  const atual: Record<string, string> = { categoria: cat, faixa, estoque: soEstoque ? '1' : '', ordem };
+  for (const [k, v] of Object.entries({ ...atual, ...muda })) if (v) p.set(k, v);
+  const q = p.toString();
+  return q ? `/produtos?${q}` : '/produtos';
+};
+const ativos = [
+  cat && { rotulo: categorias.find(c => c.slug === cat)!.nome, href: link({ categoria: null }) },
+  faixa && { rotulo: FAIXAS.find(f => f.slug === faixa)!.nome, href: link({ faixa: null }) },
+  soEstoque && { rotulo: 'Com estoque', href: link({ estoque: null }) },
+].filter(Boolean) as { rotulo: string; href: string }[];
+const ordens = [
+  { valor: '', nome: 'Destaques' },
+  { valor: 'menor', nome: 'Menor preço' },
+  { valor: 'maior', nome: 'Maior preço' },
+];
+---
+<Base titulo="Todos os produtos" descricao="Todos os blocos de montar, jogos de cartas e colecionáveis da Geek Aura, com preço de site." atual="produtos">
+  <section class="recipiente catalogo">
+    <nav class="migalhas" aria-label="Você está em"><a href="/">Início</a><span aria-hidden="true">/</span><span aria-current="page">Todos os produtos</span></nav>
+    <div class="catalogo-cabeca" data-revelar>
+      <div>
+        <h1>Todos os produtos</h1>
+        <p class="nota">{achados.length} {achados.length === 1 ? 'produto' : 'produtos'}{ativos.length ? ' com os filtros escolhidos' : ''}</p>
+      </div>
+      <form method="get" class="ordenar" data-ordenar>
+        {cat && <input type="hidden" name="categoria" value={cat} />}
+        {faixa && <input type="hidden" name="faixa" value={faixa} />}
+        {soEstoque && <input type="hidden" name="estoque" value="1" />}
+        <label for="ordem">Ordenar</label>
+        <select id="ordem" name="ordem">{ordens.map(o => <option value={o.valor} selected={o.valor === ordem}>{o.nome}</option>)}</select>
+        <noscript><button class="botao botao-contorno" type="submit">Aplicar</button></noscript>
+      </form>
+    </div>
+
+    <div class="catalogo-corpo">
+      <details class="filtros" open data-filtros>
+        <summary><Simbolo nome="filtro" tamanho={18} /> Filtros {ativos.length > 0 && <span class="filtros-qtd">{ativos.length}</span>}</summary>
+        <div class="filtros-grupos">
+          <div class="filtro-grupo">
+            <p class="filtro-titulo">Categoria</p>
+            <a class="filtro" href={link({ categoria: null })} aria-current={!cat ? 'true' : undefined}>Todas <span>{filtrar({ faixa, estoque: soEstoque }).length}</span></a>
+            {categorias.map(c => (
+              <a class="filtro" href={link({ categoria: c.slug })} aria-current={cat === c.slug ? 'true' : undefined}>{c.nome} <span>{filtrar({ cat: c.slug, faixa, estoque: soEstoque }).length}</span></a>
+            ))}
+          </div>
+          <div class="filtro-grupo">
+            <p class="filtro-titulo">Preço</p>
+            {FAIXAS.map(f => (
+              <a class="filtro" href={link({ faixa: faixa === f.slug ? null : f.slug })} aria-current={faixa === f.slug ? 'true' : undefined}>{f.nome} <span>{filtrar({ cat, faixa: f.slug, estoque: soEstoque }).length}</span></a>
+            ))}
+          </div>
+          <div class="filtro-grupo">
+            <p class="filtro-titulo">Disponibilidade</p>
+            <a class="filtro filtro-caixa" href={link({ estoque: soEstoque ? null : '1' })} aria-current={soEstoque ? 'true' : undefined}>
+              <span class="caixinha" aria-hidden="true"><Simbolo nome="check" tamanho={14} /></span>Só com estoque
+            </a>
+          </div>
+        </div>
+      </details>
+
+      <div class="catalogo-lista">
+        {ativos.length > 0 && (
+          <div class="ativos">
+            {ativos.map(a => <a class="chip" href={a.href} aria-label={`Tirar filtro ${a.rotulo}`}>{a.rotulo} <Simbolo nome="fechar" tamanho={14} /></a>)}
+            <a class="limpar" href="/produtos">Limpar filtros</a>
+          </div>
+        )}
+        {falhou ? (
+          <p class="aviso aviso-info">Não conseguimos carregar os produtos agora. Atualize a página em instantes.</p>
+        ) : achados.length ? (
+          <div class="grade grade-catalogo">{achados.map((p, i) => <CardProduto produto={p} carregar={i < 6 ? 'eager' : 'lazy'} />)}</div>
+        ) : (
+          <div class="vazio">
+            <img src="/img/auri-320.webp" width="160" height="160" alt="" loading="lazy" />
+            <p>Nenhum produto com esses filtros agora.</p>
+            <a class="botao botao-primario" href="/produtos">Ver todos os produtos</a>
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .catalogo-cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 18px 0 20px; }
+  .catalogo h1 { font-size: 30px; font-weight: 700; }
+  @media (min-width: 768px) { .catalogo h1 { font-size: 40px; } }
+  .ordenar { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; }
+  .ordenar select { height: 40px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 10px; background: var(--branco); }
+  .catalogo-corpo { display: grid; gap: 16px; }
+  @media (min-width: 900px) { .catalogo-corpo { grid-template-columns: 240px minmax(0, 1fr); gap: 32px; } }
+
+  .filtros { border: 1px solid var(--cinza-2); border-radius: var(--r-card); background: var(--branco); align-self: start; }
+  .filtros summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-weight: 600; cursor: pointer; }
+  .filtros summary::-webkit-details-marker { display: none; }
+  @media (min-width: 900px) { .filtros { position: sticky; top: 150px; border: 0; } .filtros summary { display: none; } }
+  .filtros-qtd { background: var(--abobora); border-radius: 10px; min-width: 20px; height: 20px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .filtros-grupos { display: flex; flex-direction: column; gap: 20px; padding: 4px 14px 16px; }
+  @media (min-width: 900px) { .filtros-grupos { padding: 0; } }
+  .filtro-grupo { display: flex; flex-direction: column; gap: 2px; }
+  .filtro-titulo { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--cinza-3); margin-bottom: 6px; }
+  .filtro { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-botao); text-decoration: none; font-size: 14.5px; transition: background-color .15s; }
+  .filtro span { font-size: 12.5px; color: var(--cinza-3); }
+  .filtro:hover { background: var(--cinza-1); color: var(--noite); }
+  .filtro[aria-current="true"] { background: var(--noite); color: var(--branco); font-weight: 600; }
+  .filtro[aria-current="true"] span { color: #C9C3BA; }
+  .filtro-caixa { justify-content: flex-start; gap: 10px; }
+  .caixinha { width: 20px; height: 20px; border: 1.5px solid #CFCAC3; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: transparent; background: var(--branco); }
+  .filtro-caixa[aria-current="true"] .caixinha { border-color: var(--abobora); background: var(--abobora); color: var(--noite); }
+
+  .ativos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--creme); border: 1px solid var(--creme-escuro); border-radius: 999px; padding: 6px 10px 6px 14px; font-size: 13.5px; font-weight: 500; text-decoration: none; transition: background-color .15s; }
+  .chip:hover { background: var(--creme-escuro); color: var(--noite); }
+  .limpar { font-size: 13.5px; font-weight: 600; margin-left: 4px; }
+  @media (min-width: 1100px) { .grade-catalogo { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .vazio { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 40px 0; color: var(--texto-suave); }
+  .vazio img { width: 140px; height: 140px; background: var(--creme); border-radius: var(--r-card); }
+</style>
+
+<script>
+  document.querySelector<HTMLFormElement>('[data-ordenar] select')?.addEventListener('change', e => (e.target as HTMLSelectElement).form?.submit());
+  // No celular os filtros começam fechados (no computador ficam sempre abertos na lateral).
+  const filtros = document.querySelector<HTMLDetailsElement>('[data-filtros]');
+  if (filtros && matchMedia('(max-width: 899px)').matches) filtros.open = false;
+</script>

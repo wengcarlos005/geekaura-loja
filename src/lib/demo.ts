@@ -163,6 +163,15 @@ Cada jogador recebe secretamente um papel: minerador ou sabotador. Os mineradore
     titulo: 'Transformers Blokees Defender — figura de montar surpresa',
     categoria: 'Figuras e caixas surpresa',
     peso_g: 191, medidas: [8, 17, 27],
+    // Anúncio da Shopee não tem foto por variação; estas são do mesmo produto no Mercado Livre.
+    fotos: [
+      'https://http2.mlstatic.com/D_767038-MLB103890383309_012026-O.webp',
+      'https://http2.mlstatic.com/D_605421-MLB103372577670_012026-O.jpg',
+      'https://http2.mlstatic.com/D_733719-MLB103372685660_012026-O.jpg',
+      'https://http2.mlstatic.com/D_729925-MLB103372675688_012026-O.jpg',
+      'https://http2.mlstatic.com/D_971226-MLB103372577668_012026-O.jpg',
+      'https://http2.mlstatic.com/D_608815-MLB103890373575_012026-O.jpg',
+    ],
     descricao: `🤖 Blokees Transformers – Figura de Montar Colecionável Surpresa
 
 Monte seu próprio Transformer! Figuras de 5,5 cm com acabamento metálico e 14 pontos de articulação para criar poses cheias de ação. Cada caixa é uma surpresa, o que torna a coleção ainda mais divertida.
@@ -271,6 +280,14 @@ Cada unidade corresponde a UM modelo. Para montar a coleção completa, adicione
     titulo: 'Taco Gato Cabra Queijo Pizza — jogo de cartas',
     categoria: 'Jogos de cartas',
     peso_g: 150, medidas: [10, 7, 3],
+    fotos: [
+      'https://http2.mlstatic.com/D_835801-MLB82292367593_022025-O.jpg',
+      'https://http2.mlstatic.com/D_938862-MLB82010577420_022025-O.jpg',
+      'https://http2.mlstatic.com/D_849246-MLB82010577502_022025-O.webp',
+      'https://http2.mlstatic.com/D_685813-MLB82010223614_022025-O.jpg',
+      'https://http2.mlstatic.com/D_879658-MLB82010184488_022025-O.jpg',
+      'https://http2.mlstatic.com/D_805839-MLB82010263680_022025-O.jpg',
+    ],
     descricao: `🌮 Taco Gato Cabra Queijo Pizza – Jogo de Cartas Papergames
 
 Guarde estas 5 palavras malucas: Taco, Gato, Cabra, Queijo e Pizza! Jogue uma carta enquanto fala uma das palavras. Quando a carta jogada coincidir com a palavra falada, todos correm para bater a mão na pilha central, e o último a bater leva a pilha inteira. Vence quem se livrar primeiro de todas as cartas. Parece fácil, mas a sua mente vai pregar peças em você!
@@ -342,7 +359,7 @@ export function frete(itens: ItemDoCarrinho[], cep: string): OpcaoFrete[] {
   ];
 }
 
-interface PedidoDemo { pedido: Pedido; pagamento: Pagamento | null; }
+interface PedidoDemo { pedido: Pedido; pagamento: Pagamento | null; email: string; }
 const pedidos = new Map<string, PedidoDemo>();
 
 export function criarPedido(novo: NovoPedido): PedidoCriado {
@@ -361,7 +378,7 @@ export function criarPedido(novo: NovoPedido): PedidoCriado {
   const codigo = 'SITE-' + Array.from(sorteio, b => letras[b % letras.length]).join('');
   const total = Number((disp.subtotal + valorFrete).toFixed(2));
   pedidos.set(codigo, {
-    pagamento: null,
+    pagamento: null, email: novo.comprador.email.toLowerCase(),
     pedido: {
       codigo, status: 'aguardando_pagamento', total, frete: valorFrete, criado_em: new Date().toISOString(),
       itens: novo.itens.map(i => {
@@ -376,6 +393,12 @@ export function criarPedido(novo: NovoPedido): PedidoCriado {
 }
 
 export function pedido(codigo: string): Pedido | null { return pedidos.get(codigo)?.pedido ?? null; }
+
+/** Pedidos feitos com este e-mail, do mais novo para o mais antigo (só os desta instância). */
+export function pedidosDoEmail(email: string): Pedido[] {
+  const alvo = email.toLowerCase();
+  return [...pedidos.values()].filter(r => r.email === alvo).map(r => r.pedido).reverse();
+}
 
 export function configPagamento(): ConfigPagamento {
   return { public_key: '', ambiente: 'teste', metodos: ['pix', 'cartao', 'boleto'] };

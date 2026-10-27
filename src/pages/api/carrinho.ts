@@ -1,9 +1,21 @@
-// POST /api/carrinho — adiciona, muda quantidade, remove ou limpa. Aceita JSON (fetch) e formulário
+// GET devolve o carrinho montado; POST /api/carrinho adiciona, muda quantidade, remove ou limpa. Aceita JSON (fetch) e formulário
 // comum (sem JavaScript: redireciona para /carrinho). O cookie guarda só sku e quantidade.
 import type { APIRoute } from 'astro';
 import { aplicar, lerOperacao } from '../../lib/carrinho';
 import { envDe, erro, falha, gravarCarrinho, json, lerCarrinho, lerJson, limitar, origemValida } from '../../lib/api';
 import { catalogo } from '../../lib/ryzo';
+import { montarCarrinho } from '../../lib/carrinhoVisivel';
+
+/** GET /api/carrinho — linhas do carrinho para a gaveta lateral (nome, foto, preço e estoque de hoje). */
+export const GET: APIRoute = async ctx => {
+  try {
+    const itens = await lerCarrinho(ctx);
+    const { linhas, subtotal, ok } = await montarCarrinho(envDe(ctx), itens);
+    return json({ ok: true, pronto: ok, subtotal, qtd: itens.reduce((s, i) => s + i.qtd, 0), linhas });
+  } catch (e) {
+    return falha(e);
+  }
+};
 
 export const POST: APIRoute = async ctx => {
   const ehForm = (ctx.request.headers.get('content-type') || '').includes('application/x-www-form-urlencoded');

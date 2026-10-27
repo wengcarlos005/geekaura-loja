@@ -9,6 +9,8 @@ import { buscar, naFaixa, ordenar } from '../lib/listagem';
 const q = (Astro.url.searchParams.get('q') || '').trim().slice(0, 80);
 const faixaSlug = Astro.url.searchParams.get('faixa') || '';
 const faixa = FAIXAS.find(f => f.slug === faixaSlug);
+// Faixa de preço sem termo de busca é filtro do catálogo: mora em /produtos.
+if (faixa && !Astro.url.searchParams.get('q')) return Astro.redirect(`/produtos?faixa=${faixa.slug}`, 301);
 const ordemBruta = Astro.url.searchParams.get('ordem');
 const ordem = ordemBruta === 'menor' || ordemBruta === 'maior' ? ordemBruta : '';
 const todos = await catalogo(envDe(Astro));

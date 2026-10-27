@@ -131,7 +131,14 @@ const cache = new Map<string, { expira: number; valor: unknown }>();
 /** Limpa o cache em memória (usado nos testes). */
 export function limparCache() { cache.clear(); }
 
-async function chamar(env: Env, metodo: 'GET' | 'POST', caminho: string, corpo?: unknown): Promise<any> {
+/** Cabeçalho com que o site repassa ao Ryzo a sessão do cliente logado (ver src/lib/conta.ts). */
+export const CABECALHO_SESSAO = 'X-Cliente-Sessao';
+
+export async function chamar(
+  env: Env, metodo: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE', caminho: string, corpo?: unknown,
+  opc: { sessao?: string | null; repassar401?: boolean } = {},
+): Promise<any> {
+  const sessao = opc.sessao;
   const base = (env.RYZO_URL || '').replace(/\/+$/, '');
   if (!/^https:\/\//.test(base)) throw new ErroRyzo('A loja está em manutenção. Tente de novo em instantes.', 503);
   let r: Response;
@@ -142,6 +149,7 @@ async function chamar(env: Env, metodo: 'GET' | 'POST', caminho: string, corpo?:
         Authorization: `Bearer ${env.RYZO_VITRINE_KEY}`,
         Accept: 'application/json',
         ...(corpo !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(sessao ? { [CABECALHO_SESSAO]: sessao } : {}),
       },
       body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
       signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -153,8 +161,9 @@ async function chamar(env: Env, metodo: 'GET' | 'POST', caminho: string, corpo?:
   try { dados = await r.json(); } catch { /* corpo vazio ou não JSON */ }
   if (!r.ok || !dados || dados.ok === false) {
     const msg = typeof dados?.error === 'string' ? dados.error.slice(0, 300) : 'Não foi possível falar com a loja agora.';
-    // 401 é configuração nossa, não do comprador: não repassa o texto técnico.
-    if (r.status === 401) throw new ErroRyzo('A loja está em manutenção. Tente de novo em instantes.', 503);
+    // 401 é configuração nossa (chave da vitrine), não do comprador: não repassa o texto técnico.
+    // As rotas de conta de cliente pedem o repasse, porque lá o 401 é senha errada ou sessão vencida.
+    if (r.status === 401 && (!opc.repassar401 || /vitrine/i.test(msg))) throw new ErroRyzo('A loja está em manutenção. Tente de novo em instantes.', 503);
     const skus = Array.isArray(dados?.skus) ? dados.skus.filter((s: unknown) => typeof s === 'string').slice(0, 30) : undefined;
     throw new ErroRyzo(msg, r.status >= 400 ? r.status : 502, skus);
   }
@@ -211,9 +220,9 @@ export async function frete(env: Env, itens: ItemDoCarrinho[], cep: string): Pro
   })).filter((o: OpcaoFrete) => o.id > 0 && o.preco >= 0);
 }
 
-export async function criarPedido(env: Env, novo: NovoPedido): Promise<PedidoCriado> {
+export async function criarPedido(env: Env, novo: NovoPedido, sessaoCliente?: string | null): Promise<PedidoCriado> {
   if (modoDemo(env)) return demo.criarPedido(novo);
-  const d = await chamar(env, 'POST', '/pedidos', novo);
+  const d = await chamar(env, 'POST', '/pedidos', novo, { sessao: sessaoCliente });
   return {
     codigo: str(d.codigo, 30), subtotal: num(d.subtotal), frete: num(d.frete), total: num(d.total),
     envio: d.envio ? { servico: str(d.envio.servico, 80), transportadora: str(d.envio.transportadora, 80), prazo_dias: num(d.envio.prazo_dias) } : null,

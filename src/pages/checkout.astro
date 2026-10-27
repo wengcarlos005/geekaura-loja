@@ -5,27 +5,45 @@ import Simbolo from '../components/Simbolo.astro';
 import { envDe, lerCarrinho } from '../lib/api';
 import { montarCarrinho } from '../lib/carrinhoVisivel';
 import { precoBRL, UFS } from '../lib/formato';
+import { clienteAtual, lerSessao, listarEnderecos, type Cliente, type Endereco } from '../lib/conta';
 
 const itens = await lerCarrinho(Astro).catch(() => []);
 if (!itens.length) return Astro.redirect('/carrinho', 303);
 const { linhas, subtotal, ok } = await montarCarrinho(envDe(Astro), itens);
 if (!ok) return Astro.redirect('/carrinho', 303);
 const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
+
+// Logado: dados e endereço principal já vêm preenchidos, e os outros endereços ficam a um toque.
+const sessao = await lerSessao(Astro);
+let cliente: Cliente | null = null;
+let enderecos: Endereco[] = [];
+if (sessao) {
+  try { cliente = await clienteAtual(envDe(Astro), sessao); if (cliente) enderecos = await listarEnderecos(envDe(Astro), sessao); } catch { /* checkout segue em branco */ }
+}
+const principal = enderecos.find(e => e.padrao) ?? enderecos[0];
+const tel = cliente?.telefone ?? '';
+const telFmt = tel.length === 11 ? `(${tel.slice(0, 2)}) ${tel.slice(2, 7)}-${tel.slice(7)}` : tel.length === 10 ? `(${tel.slice(0, 2)}) ${tel.slice(2, 6)}-${tel.slice(6)}` : '';
+const cepFmt = (c: string) => `${c.slice(0, 5)}-${c.slice(5)}`;
 ---
 <Base titulo="Finalizar pedido" descricao="Finalize seu pedido na Geek Aura." noindex>
   <section class="recipiente">
     <h1 class="titulo-pagina">Finalizar pedido</h1>
     <noscript><p class="aviso aviso-erro">Para finalizar o pedido, ative o JavaScript do navegador.</p></noscript>
+    {cliente ? (
+      <p class="faixa-conta">Comprando como <strong>{cliente.nome}</strong> · o pedido fica salvo em <a href="/conta">Minha conta</a>.</p>
+    ) : (
+      <p class="faixa-conta">Já tem conta? <a class="link-forte" href="/entrar?volta=/checkout">Entre</a> para preencher tudo mais rápido. Ou siga sem conta, sem problema.</p>
+    )}
     <div class="checkout">
       <form class="etapas" data-checkout novalidate>
         <fieldset class="etapa">
           <legend><span class="num">1</span>Seus dados</legend>
           <div class="linha-campos">
-            <div class="campo"><label for="nome">Nome completo</label><input id="nome" name="nome" autocomplete="name" maxlength="80" required /></div>
+            <div class="campo"><label for="nome">Nome completo</label><input id="nome" name="nome" autocomplete="name" maxlength="80" required value={cliente?.nome} /></div>
           </div>
           <div class="linha-campos duas">
-            <div class="campo"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" required /><span class="ajuda">Mandamos a confirmação e o rastreio para cá.</span></div>
-            <div class="campo"><label for="telefone">Celular com DDD</label><input id="telefone" name="telefone" type="tel" autocomplete="tel-national" inputmode="tel" maxlength="16" placeholder="(21) 90000-0000" required /></div>
+            <div class="campo"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" required value={cliente?.email} /><span class="ajuda">Mandamos a confirmação e o rastreio para cá.</span></div>
+            <div class="campo"><label for="telefone">Celular com DDD</label><input id="telefone" name="telefone" type="tel" autocomplete="tel-national" inputmode="tel" maxlength="16" placeholder="(21) 90000-0000" required value={telFmt || undefined} /></div>
           </div>
           <div class="linha-campos duas">
             <div class="campo"><label for="cpf">CPF</label><input id="cpf" name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required /><span class="ajuda">Obrigatório para a nota fiscal e o envio.</span></div>
@@ -34,21 +52,32 @@ const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
 
         <fieldset class="etapa">
           <legend><span class="num">2</span>Endereço de entrega</legend>
+          {enderecos.length > 0 && (
+            <div class="salvos" role="radiogroup" aria-label="Endereços salvos">
+              {enderecos.map(e => (
+                <label class="salvo">
+                  <input type="radio" name="endereco_salvo" value={e.id} checked={e === principal} data-endereco={JSON.stringify({ ...e, cep: cepFmt(e.cep) })} />
+                  <span class="salvo-texto"><strong>{e.apelido}</strong><span>{e.logradouro}, {e.numero}{e.complemento && ` · ${e.complemento}`}</span><span class="nota">{e.cidade}/{e.uf} · {cepFmt(e.cep)}</span></span>
+                </label>
+              ))}
+              <label class="salvo"><input type="radio" name="endereco_salvo" value="" /><span class="salvo-texto"><strong>Outro endereço</strong><span class="nota">Digitar um endereço novo</span></span></label>
+            </div>
+          )}
           <div class="linha-campos duas">
-            <div class="campo"><label for="cep">CEP</label><input id="cep" name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required /><span class="ajuda" data-cep-ajuda>Preenchemos a rua para você.</span></div>
+            <div class="campo"><label for="cep">CEP</label><input id="cep" name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required value={principal ? (cepFmt(principal.cep)) : undefined} /><span class="ajuda" data-cep-ajuda>Preenchemos a rua para você.</span></div>
           </div>
           <div class="linha-campos tres">
-            <div class="campo"><label for="logradouro">Rua</label><input id="logradouro" name="logradouro" autocomplete="address-line1" maxlength="120" required /></div>
-            <div class="campo"><label for="numero">Número</label><input id="numero" name="numero" maxlength="20" required /></div>
-            <div class="campo"><label for="complemento">Complemento</label><input id="complemento" name="complemento" autocomplete="address-line2" maxlength="80" /></div>
+            <div class="campo"><label for="logradouro">Rua</label><input id="logradouro" name="logradouro" autocomplete="address-line1" maxlength="120" required value={principal ? (principal.logradouro) : undefined} /></div>
+            <div class="campo"><label for="numero">Número</label><input id="numero" name="numero" maxlength="20" required value={principal ? (principal.numero) : undefined} /></div>
+            <div class="campo"><label for="complemento">Complemento</label><input id="complemento" name="complemento" autocomplete="address-line2" maxlength="80" value={principal ? (principal.complemento) : undefined} /></div>
           </div>
           <div class="linha-campos tres">
-            <div class="campo"><label for="bairro">Bairro</label><input id="bairro" name="bairro" maxlength="80" required /></div>
-            <div class="campo"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2" maxlength="80" required /></div>
+            <div class="campo"><label for="bairro">Bairro</label><input id="bairro" name="bairro" maxlength="80" required value={principal ? (principal.bairro) : undefined} /></div>
+            <div class="campo"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2" maxlength="80" required value={principal ? (principal.cidade) : undefined} /></div>
             <div class="campo"><label for="uf">UF</label>
               <select id="uf" name="uf" autocomplete="address-level1" required>
                 <option value="">—</option>
-                {UFS.map(u => <option value={u}>{u}</option>)}
+                {UFS.map(u => <option value={u} selected={principal?.uf === u}>{u}</option>)}
               </select>
             </div>
           </div>
@@ -84,6 +113,13 @@ const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
   </section>
 </Base>
 <style>
+  .faixa-conta { background: var(--creme); border: 1px solid var(--creme-escuro); border-radius: var(--r-card); padding: 12px 14px; font-size: 14px; margin-bottom: 16px; }
+  .salvos { display: grid; gap: 8px; margin-bottom: 14px; }
+  @media (min-width: 640px) { .salvos { grid-template-columns: 1fr 1fr; } }
+  .salvo { display: flex; gap: 10px; align-items: flex-start; border: 1.5px solid var(--cinza-2); border-radius: var(--r-card); padding: 12px; cursor: pointer; font-size: 13.5px; transition: border-color .15s; }
+  .salvo:has(input:checked) { border-color: var(--noite); box-shadow: inset 0 0 0 1px var(--noite); }
+  .salvo input { margin-top: 3px; accent-color: var(--noite); }
+  .salvo-texto { display: flex; flex-direction: column; gap: 2px; }
   .titulo-pagina { font-size: 30px; font-weight: 700; padding: 24px 0 20px; }
   .checkout { display: grid; gap: 24px; }
   @media (min-width: 960px) { .checkout { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; } .resumo { position: sticky; top: 16px; } }
@@ -164,6 +200,17 @@ const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
   }
   campo('cep').addEventListener('input', () => { if (somenteDigitos(campo('cep').value).length === 8) aoMudarCep(); });
   campo('cep').addEventListener('blur', aoMudarCep);
+
+  // Endereço salvo da conta: escolher um preenche os campos e recalcula o frete.
+  form.addEventListener('change', e => {
+    const r = e.target as HTMLInputElement;
+    if (r.name !== 'endereco_salvo') return;
+    const dados = r.dataset.endereco ? JSON.parse(r.dataset.endereco) : null;
+    for (const n of ['cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf']) campo(n).value = dados ? String(dados[n] ?? '') : '';
+    if (!dados) { campo('cep').focus(); return; }
+    aoMudarCep();
+  });
+  if (cepValido(campo('cep').value)) aoMudarCep();
 
   // ViaCEP é conveniência: se não responder, o comprador digita a rua e nada trava.
   async function preencherEndereco(cep: string) {
