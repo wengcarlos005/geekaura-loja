@@ -1,0 +1,17 @@
+---
+import PaginaLegal from '../components/PaginaLegal.astro';
+import { LOJA } from '../lib/loja';
+---
+<PaginaLegal titulo="Sobre a Geek Aura" descricao="Quem somos: a Geek Aura vende blocos de montar, jogos de cartas e colecionáveis para todo o Brasil.">
+  <p>A Geek Aura vende blocos de montar, jogos de cartas e colecionáveis. Começamos na Shopee e no Mercado Livre, onde a loja tem nota {LOJA.notaShopee} na Shopee, e agora vendemos também aqui, direto para você.</p>
+  <p>O site usa o mesmo estoque e o mesmo cuidado na separação dos marketplaces. A diferença é o preço: sem a comissão do marketplace, o preço do site fica em média 10% abaixo do preço da Shopee, promoções incluídas.</p>
+  <h2>Como trabalhamos</h2>
+  <ul>
+    <li>Cada pedido é conferido antes de sair: modelo, quantidade e embalagem.</li>
+    <li>Postamos {LOJA.prazoPostagem}.</li>
+    <li>Pagamentos processados pelo Mercado Pago: Pix, cartão e boleto.</li>
+  </ul>
+  <h2>Dados da empresa</h2>
+  <p>{LOJA.razaoSocial}<br />CNPJ {LOJA.cnpj}<br />{LOJA.endereco}</p>
+  <p>Atendimento: <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a> · WhatsApp <a href={LOJA.whatsappLink} rel="noopener" target="_blank">{LOJA.whatsapp}</a></p>
+</PaginaLegal>

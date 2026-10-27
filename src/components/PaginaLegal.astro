@@ -1,0 +1,17 @@
+---
+// Moldura das páginas institucionais. Todas nascem como RASCUNHO: o texto precisa ser revisado
+// pelo dono (e, no caso de privacidade e termos, idealmente por um advogado) antes de publicar.
+import Base from '../layouts/Base.astro';
+interface Props { titulo: string; descricao: string; rascunho?: boolean; }
+const { titulo, descricao, rascunho = true } = Astro.props;
+---
+<Base titulo={titulo} descricao={descricao}>
+  <article class="recipiente texto-longo legal">
+    {rascunho && <p class="rascunho">Rascunho para revisão</p>}
+    <h1>{titulo}</h1>
+    <slot />
+  </article>
+</Base>
+<style>
+  .legal { padding-top: 32px; }
+</style>
