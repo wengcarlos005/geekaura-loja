@@ -10,7 +10,7 @@ export const GET: APIRoute = async ctx => {
   const caminhos = [
     '/', ...categoriasDoCatalogo(produtos).map(c => `/categoria/${c.slug}`),
     ...produtos.map(p => `/produto/${p.slug}`),
-    '/sobre', '/contato', '/frete-e-prazos', '/trocas-e-devolucoes', '/privacidade', '/termos',
+    '/sobre', '/contato', '/ajuda', '/frete-e-prazos', '/trocas-e-devolucoes', '/privacidade', '/termos',
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${caminhos
     .map(c => `  <url><loc>${escapar(new URL(c, LOJA.url).href)}</loc></url>`).join('\n')}\n</urlset>\n`;

@@ -37,8 +37,6 @@ try { categorias = categoriasDoCatalogo(await catalogo(env)); } catch { /* menu 
 let qtdCarrinho = 0;
 try { qtdCarrinho = (await lerCarrinho(Astro)).reduce((s, i) => s + i.qtd, 0); } catch { /* sem segredo: carrinho vazio */ }
 const nomeCliente = (await lerSessao(Astro))?.n ?? null;
-// No checkout e na página do pedido o botão flutuante cobriria campo de formulário.
-const mostrarZap = !/^\/(checkout|pedido\/)/.test(Astro.url.pathname);
 
 const tituloCompleto = titulo === LOJA.nome ? `${LOJA.nome} · Blocos de montar, jogos de cartas e colecionáveis` : `${titulo} · ${LOJA.nome}`;
 const canonico = new URL(Astro.url.pathname, LOJA.url).href;
@@ -90,11 +88,6 @@ const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
     <Rodape categorias={categorias} />
     <BarraInferior atual={atual} qtdCarrinho={qtdCarrinho} nomeCliente={nomeCliente} caminho={Astro.url.pathname} />
     <GavetaCarrinho />
-    {mostrarZap && (
-      <a class="zap-flutuante" href={LOJA.whatsappLink} rel="noopener" target="_blank" aria-label={`Falar no WhatsApp ${LOJA.whatsapp}`}>
-        <Simbolo nome="zap" tamanho={26} /><span class="zap-texto">Fale no WhatsApp</span>
-      </a>
-    )}
     <div class="torrada" role="status" aria-live="polite" data-torrada></div>
     <script>
       import '../scripts/loja';

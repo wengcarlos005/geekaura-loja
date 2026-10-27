@@ -1,0 +1,81 @@
+---
+// Dúvidas frequentes. Existe para o cliente resolver sozinho, sem precisar chamar ninguém: cada
+// resposta aponta para a tela onde ele faz a coisa (conta, pedido, trocas). As respostas seguem
+// o que o site faz hoje; ao mudar prazo, frete ou pagamento, mude aqui também.
+import Base from '../layouts/Base.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { LOJA } from '../lib/loja';
+
+const grupos = [
+  { titulo: 'Pedido e entrega', itens: [
+    { p: 'Em quanto tempo vocês postam?', r: `Postamos ${LOJA.prazoPostagem}. No Pix e no cartão a confirmação costuma ser imediata; no boleto leva até 3 dias úteis.` },
+    { p: 'Como acompanho meu pedido?', r: 'Em Minha conta, se você comprou logado, ou em Acompanhar pedido com o código SITE- que chega no e-mail. O código de rastreio aparece lá assim que o pacote é postado.' },
+    { p: 'Quanto custa o frete?', r: 'Depende do CEP, do peso e do tamanho da caixa. Você vê o valor e o prazo na página do produto, digitando o CEP, e escolhe a opção antes de pagar.' },
+    { p: 'Vocês entregam no Brasil todo?', r: 'Sim, pelos Correios e por transportadoras parceiras. As opções disponíveis para o seu CEP aparecem no fechamento do pedido.' },
+    { p: 'Posso mudar o endereço depois de pagar?', r: 'Só antes da postagem. Escreva para o nosso e-mail com o código do pedido o quanto antes.' },
+  ] },
+  { titulo: 'Pagamento', itens: [
+    { p: 'Quais formas de pagamento vocês aceitam?', r: 'Pix, cartão de crédito e boleto, todos processados pelo Mercado Pago. O número do cartão não passa pela Geek Aura.' },
+    { p: 'Por que o preço é menor que na Shopee?', r: 'No site não pagamos comissão de marketplace, então repassamos a diferença: os preços ficam, em média, 10% abaixo dos da Shopee, promoções incluídas.' },
+    { p: 'Paguei o Pix e o pedido não mudou. E agora?', r: 'A página do pedido atualiza sozinha em poucos segundos. Se passar de alguns minutos, confira no aplicativo do banco se o Pix saiu e recarregue a página do pedido.' },
+    { p: 'Tem nota fiscal?', r: `Sim. A nota é emitida pela ${LOJA.razaoSocial} (CNPJ ${LOJA.cnpj}) no CPF informado no pedido.` },
+  ] },
+  { titulo: 'Produtos', itens: [
+    { p: 'Os produtos são novos?', r: 'Sim, todos novos e conferidos peça por peça antes do envio.' },
+    { p: 'As peças são compatíveis com outras marcas de blocos?', r: 'Os blocos de montar seguem o encaixe padrão e funcionam com as marcas mais conhecidas. Quando um produto tiver exceção, a descrição avisa.' },
+    { p: 'O produto que eu quero esgotou. Ele volta?', r: 'Muitos voltam. Salve no coração (Favoritos) para achar fácil depois; o estoque do site é o mesmo da loja e atualiza sozinho.' },
+  ] },
+  { titulo: 'Trocas e devoluções', itens: [
+    { p: 'Posso desistir da compra?', r: 'Sim, em até 7 dias corridos depois de receber, sem precisar explicar o motivo. Devolvemos o valor total, frete incluído.' },
+    { p: 'Chegou faltando peça ou com defeito. O que faço?', r: 'Escreva para o nosso e-mail com o código do pedido e uma foto. Mandamos a peça, trocamos o produto ou devolvemos o dinheiro, como você preferir.' },
+  ] },
+  { titulo: 'Conta', itens: [
+    { p: 'Preciso criar conta para comprar?', r: 'Não. Mas com a conta você acompanha todos os pedidos num lugar só, salva endereços e o checkout já vem preenchido.' },
+    { p: 'Esqueci minha senha.', r: 'Em Entrar, toque em Esqueci a senha: mandamos um código de 6 números para o seu e-mail.' },
+  ] },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: grupos.flatMap(g => g.itens.map(i => ({ '@type': 'Question', name: i.p, acceptedAnswer: { '@type': 'Answer', text: i.r } }))),
+};
+---
+<Base titulo="Dúvidas frequentes" descricao="Prazos de envio, frete, formas de pagamento, nota fiscal, trocas e conta na Geek Aura." jsonLd={jsonLd}>
+  <section class="recipiente ajuda">
+    <h1 data-revelar>Dúvidas frequentes</h1>
+    <p class="ajuda-sub">As respostas para o que mais perguntam. Seu pedido está em <a href="/conta">Minha conta</a> ou em <a href="/pedido">Acompanhar pedido</a>.</p>
+    <nav class="atalhos" aria-label="Assuntos">{grupos.map((g, i) => <a href={`#g${i}`}>{g.titulo}</a>)}</nav>
+    {grupos.map((g, i) => (
+      <div class="grupo" id={`g${i}`} data-revelar>
+        <h2>{g.titulo}</h2>
+        {g.itens.map(item => (
+          <details class="pergunta">
+            <summary>{item.p}<Simbolo nome="direita" tamanho={18} /></summary>
+            <p>{item.r}</p>
+          </details>
+        ))}
+      </div>
+    ))}
+    <div class="ainda" data-revelar>
+      <p><strong>Não achou a resposta?</strong> Escreva para <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a> com o código do pedido. Respondemos em dias úteis.</p>
+    </div>
+  </section>
+</Base>
+<style>
+  .ajuda { max-width: 820px; padding-top: 28px; display: flex; flex-direction: column; gap: 18px; }
+  .ajuda h1 { font-size: 34px; font-weight: 700; }
+  .ajuda-sub { color: var(--texto-suave); font-size: 15.5px; }
+  .atalhos { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .atalhos a { flex-shrink: 0; border: 1px solid var(--cinza-2); border-radius: 999px; padding: 7px 14px; font-size: 13.5px; font-weight: 500; text-decoration: none; }
+  .atalhos a:hover { border-color: var(--noite); }
+  .grupo { scroll-margin-top: 160px; }
+  .grupo h2 { font-size: 21px; font-weight: 600; margin: 8px 0 6px; }
+  .pergunta { border-bottom: 1px solid var(--cinza-2); }
+  .pergunta summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; cursor: pointer; font-weight: 600; font-size: 15px; }
+  .pergunta summary::-webkit-details-marker { display: none; }
+  .pergunta summary :global(svg) { flex-shrink: 0; transition: transform .2s; }
+  .pergunta[open] summary :global(svg) { transform: rotate(90deg); }
+  .pergunta p { padding: 0 0 16px; color: var(--texto-suave); line-height: 1.6; font-size: 15px; animation: surgir .25s ease; }
+  .ainda { background: var(--creme); border-radius: var(--r-card); padding: 16px 18px; font-size: 15px; }
+</style>
