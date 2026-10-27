@@ -10,6 +10,7 @@ import type {
 } from './ryzo';
 import type { ItemDoCarrinho } from './carrinho';
 import { ErroRyzo } from './erros';
+import catalogoExtra from './catalogo-demo.json';
 
 /** Cópia da regra do Ryzo (src/lojaPropria.ts). Só o modo demonstração calcula preço: em produção ele vem pronto. */
 export function precoSugeridoDoSite(preco: number): number {
@@ -27,7 +28,7 @@ interface Bruto {
   variacoes: [string, string | null, string | null, number, number][];
 }
 
-const BRUTOS: Bruto[] = [
+const FEITOS_A_MAO: Bruto[] = [
   {
     slug: 'bonecos-ninja-dragao-blocos-de-montar',
     titulo: 'Bonecos Ninja Dragão — blocos de montar',
@@ -311,6 +312,19 @@ Guarde estas 5 palavras malucas: Taco, Gato, Cabra, Queijo e Pizza! Jogue uma ca
     variacoes: [['23998178842', null, null, 44.9, 3]],
   },
 ];
+
+// O resto do catálogo foi lido do Ryzo e gravado em catalogo-demo.json. Os feitos à mão ganham em
+// caso de SKU ou slug repetido; entrada malformada é descartada em vez de derrubar a página.
+const skusAMao = new Set(FEITOS_A_MAO.flatMap(b => b.variacoes.map(v => v[0])));
+const slugs = new Set(FEITOS_A_MAO.map(b => b.slug));
+const BRUTOS: Bruto[] = [...FEITOS_A_MAO];
+for (const b of catalogoExtra as unknown as Bruto[]) {
+  if (!b || !/^[a-z0-9-]{1,80}$/.test(b.slug) || slugs.has(b.slug) || !Array.isArray(b.variacoes)) continue;
+  const variacoes = b.variacoes.filter(v => Array.isArray(v) && typeof v[0] === 'string' && !skusAMao.has(v[0]) && Number(v[3]) > 0);
+  if (!variacoes.length) continue;
+  slugs.add(b.slug);
+  BRUTOS.push({ ...b, variacoes, fotos: Array.isArray(b.fotos) && b.fotos.length ? b.fotos : undefined });
+}
 
 const PRODUTOS: Produto[] = BRUTOS.map(b => {
   const variacoes = b.variacoes.map(([sku, rotulo, foto, preco, estoque]) => ({
