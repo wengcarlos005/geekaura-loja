@@ -12,8 +12,11 @@ describe('busca no catálogo', () => {
     expect(buscar(todos, ' a ')).toEqual([]);
   });
   it('faixa de preço e ordenação com esgotado no fim', () => {
-    expect(naFaixa(todos, 'acima-de-100')).toEqual([]);
-    expect(naFaixa(todos, '60-a-100').map(p => p.preco_a_partir)).toEqual([83.9]);
+    // O catálogo de demonstração cresce: confere a regra da faixa, não a lista exata.
+    for (const p of naFaixa(todos, 'acima-de-100')) expect(p.preco_a_partir).toBeGreaterThanOrEqual(100);
+    const meio = naFaixa(todos, '60-a-100');
+    expect(meio.map(p => p.slug)).toContain('navio-porta-avioes-8-em-1-554-pecas');
+    for (const p of meio) expect(p.preco_a_partir >= 60 && p.preco_a_partir < 100).toBe(true);
     const lista = ordenar([{ ...todos[0], disponivel: false, preco_a_partir: 1 }, todos[1], todos[2]], 'menor');
     expect(lista[2].disponivel).toBe(false);
     expect(lista[0].preco_a_partir).toBeLessThanOrEqual(lista[1].preco_a_partir);
