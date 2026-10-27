@@ -1,7 +1,7 @@
 ---
 // Ícones de interface (traço), desenhados no mesmo grid de 24px da versão A.
 type Nome = 'busca' | 'usuario' | 'carrinho' | 'pix' | 'caminhao' | 'devolucao' | 'estrela' | 'lixo' | 'copiar' | 'cadeado' | 'zap'
-  | 'coracao' | 'esquerda' | 'direita' | 'fechar' | 'sair' | 'pacote' | 'mapa' | 'pausa' | 'tocar' | 'check' | 'filtro' | 'olho';
+  | 'coracao' | 'esquerda' | 'direita' | 'fechar' | 'sair' | 'pacote' | 'mapa' | 'pausa' | 'tocar' | 'check' | 'filtro' | 'olho' | 'casa' | 'grade';
 interface Props { nome: Nome; tamanho?: number; }
 const { nome, tamanho = 22 } = Astro.props;
 ---
@@ -28,5 +28,7 @@ const { nome, tamanho = 22 } = Astro.props;
   {nome === 'tocar' && <path d="M8 5l11 7-11 7z" />}
   {nome === 'check' && <path d="M5 12.5l4.5 4.5L19 7.5" />}
   {nome === 'filtro' && <path d="M4 6h16M7 12h10M10 18h4" />}
+  {nome === 'casa' && <><path d="M4 11l8-7 8 7" /><path d="M6 9.5V20h12V9.5" /><path d="M10 20v-5h4v5" /></>}
+  {nome === 'grade' && <><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></>}
   {nome === 'olho' && <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>}
 </svg>

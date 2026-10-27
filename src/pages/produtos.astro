@@ -119,6 +119,17 @@ const ordens = [
 
 <style>
   .catalogo-cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 18px 0 20px; }
+  @media (max-width: 899px) {
+    .catalogo-cabeca { flex-wrap: nowrap; align-items: center; padding: 10px 0 12px; }
+    .catalogo h1 { font-size: 24px !important; }
+    .ordenar label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .ordenar select { height: 38px; max-width: 150px; font-size: 14px; }
+    .filtros summary { padding: 10px 14px; }
+    .filtros-grupos { flex-direction: column; gap: 16px; }
+    .filtro-grupo { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .filtro-titulo { flex-basis: 100%; margin-bottom: 0; }
+    .filtro { border: 1px solid var(--cinza-2); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; gap: 6px; }
+  }
   .catalogo h1 { font-size: 30px; font-weight: 700; }
   @media (min-width: 768px) { .catalogo h1 { font-size: 40px; } }
   .ordenar { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; }

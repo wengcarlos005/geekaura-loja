@@ -24,11 +24,12 @@ const { rotulo, intervalo = 7000 } = Astro.props;
   .carrossel-trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 14px; }
   .carrossel-trilho::-webkit-scrollbar { display: none; }
   .slide { scroll-snap-align: start; scroll-snap-stop: always; position: relative; overflow: hidden; }
-  .carrossel-controles { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(6px); border-radius: 999px; padding: 4px; box-shadow: 0 8px 24px -10px rgba(17, 16, 20, .35); z-index: 5; }
+  .carrossel-controles { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(6px); border-radius: 999px; padding: 4px; box-shadow: 0 8px 24px -10px rgba(17, 16, 20, .35); z-index: 5; }
   .carrossel-controles[hidden] { display: none; }
   .c-seta, .c-pausa { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--noite); transition: background-color .15s; }
   .c-seta:hover, .c-pausa:hover { background: var(--cinza-1); }
   .c-pontos { display: flex; gap: 6px; padding: 0 4px; }
+  @media (max-width: 599px) { .c-seta { display: none; } .carrossel-controles { padding: 4px 4px 4px 10px; } .c-ponto { width: 18px; } .c-ponto[aria-current="true"] { width: 34px; } }
   .c-ponto { position: relative; width: 26px; height: 8px; border-radius: 999px; border: 0; background: var(--cinza-2); overflow: hidden; cursor: pointer; padding: 0; transition: width .3s ease; }
   .c-ponto[aria-current="true"] { width: 44px; }
   .c-ponto i { position: absolute; inset: 0; background: var(--abobora); transform-origin: left; transform: scaleX(0); }

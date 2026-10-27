@@ -152,6 +152,12 @@ try {
       )}
     </section>
   </div>
+  {p.disponivel && (
+    <div class="compra-fixa" data-compra-fixa hidden>
+      <span class="cf-preco"><span class="nota">{temEscolha ? 'Modelo escolhido' : 'Preço'}</span><strong data-cf-preco>{precoBRL(escolhida?.preco ?? p.preco_a_partir)}</strong></span>
+      <button class="botao botao-primario" type="button" data-cf-comprar><Simbolo nome="carrinho" tamanho={18} />Adicionar</button>
+    </div>
+  )}
   <Trilho id="relacionados" sobrelinha="Continue explorando" titulo="Você também pode gostar" produtos={relacionados} verTodos={{ href: '/produtos' }} />
 </Base>
 
@@ -169,6 +175,13 @@ try {
 
   .compra { display: flex; flex-direction: column; gap: 14px; }
   .compra h1 { font-size: 26px; font-weight: 600; line-height: 1.15; }
+  /* Barra de compra fixa: só no celular, quando o botão de verdade sai da tela. */
+  .compra-fixa { position: fixed; left: 0; right: 0; bottom: calc(62px + env(safe-area-inset-bottom)); z-index: 54; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--branco); border-top: 1px solid var(--cinza-2); padding: 10px 16px; box-shadow: 0 -10px 24px -16px rgba(17, 16, 20, .35); animation: surgir .25s ease; }
+  .compra-fixa[hidden] { display: none; }
+  .cf-preco { display: flex; flex-direction: column; line-height: 1.15; }
+  .cf-preco strong { font-family: var(--fonte-titulo); font-size: 21px; }
+  .compra-fixa .botao { height: 44px; padding: 0 20px; }
+  @media (min-width: 900px) { .compra-fixa { display: none !important; } }
   .titulo-linha { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
   .fav-produto { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--cinza-2); background: var(--branco); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color .15s, color .15s; }
   .fav-produto:hover { border-color: var(--noite); }
@@ -252,6 +265,24 @@ try {
     if (qtd) { qtd.max = String(Math.min(99, estoque)); if (Number(qtd.value) > estoque) qtd.value = String(estoque); }
     const texto = document.querySelector('[data-estoque-texto]');
     if (texto) texto.textContent = estoque <= 5 ? `Últimas ${estoque} unidades` : 'Em estoque, pronto para envio';
+  });
+
+  // Barra fixa do celular aparece quando o botão "Adicionar ao carrinho" sai da tela.
+  const fixa = document.querySelector<HTMLElement>('[data-compra-fixa]');
+  const botaoReal = document.querySelector<HTMLButtonElement>('.botao-comprar');
+  if (fixa && botaoReal) {
+    // Rolagem e não IntersectionObserver: num salto grande o botão passa de "abaixo" para "acima"
+    // sem nunca cruzar a tela, e o observador não dispara.
+    let pendente = false;
+    const conferir = () => { pendente = false; fixa.hidden = botaoReal.getBoundingClientRect().bottom > 0; };
+    addEventListener('scroll', () => { if (!pendente) { pendente = true; requestAnimationFrame(conferir); } }, { passive: true });
+    conferir();
+    fixa.querySelector('[data-cf-comprar]')?.addEventListener('click', () => botaoReal.form?.requestSubmit(botaoReal));
+  }
+  document.addEventListener('change', e => {
+    const r = e.target as HTMLInputElement;
+    const alvo = document.querySelector('[data-cf-preco]');
+    if (r.name === 'sku' && r.dataset.preco && alvo) alvo.textContent = r.dataset.preco;
   });
 
   const formFrete = document.querySelector<HTMLFormElement>('[data-frete-form]');

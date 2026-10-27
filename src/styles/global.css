@@ -314,3 +314,59 @@ html.sem-rolagem { overflow: hidden; }
 .botao-texto { border: 0; background: none; padding: 6px 0; font-weight: 600; font-size: 14px; text-decoration: underline; cursor: pointer; align-self: center; }
 .campo-codigo { letter-spacing: 6px; font-family: var(--fonte-titulo); font-size: 20px !important; text-align: center; }
 .botao-card { white-space: nowrap; }
+
+/* ======================================================================
+   Celular (até 899px). Topo enxuto, navegação embaixo, cards compactos.
+   ====================================================================== */
+.so-estreito { display: none; }
+.barra-inferior { display: none; }
+@media (max-width: 899px) {
+  .so-estreito { display: inline; }
+  .faixa-demo .so-largo { display: none; }
+  .faixa-demo { font-size: 12px; padding: 5px 12px; }
+  /* A faixa preta do topo vira link no rodapé e na conta: no celular ela só empurrava o conteúdo. */
+  .faixa-util { display: none; }
+  .topo-linha { padding-top: 10px; gap: 10px; }
+  .marca svg { width: 30px; height: 30px; }
+  .marca-nome { font-size: 20px; }
+  .conta .conta-link, .conta .icone-fav { display: none; }
+  .busca input { height: 42px; font-size: 16px; }
+  .categorias { margin-top: 10px; padding-bottom: 10px; gap: 6px; }
+  .categorias a { padding: 6px 12px; font-size: 13px; border-radius: 999px; }
+
+  /* Barra de navegação de baixo. */
+  body { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
+  .barra-inferior { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 56; background: rgba(255, 255, 255, .97); backdrop-filter: blur(10px); border-top: 1px solid var(--cinza-2); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+  .barra-inferior a { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--cinza-3); text-decoration: none; padding: 4px 0; position: relative; }
+  .barra-inferior a svg { width: 23px; height: 23px; }
+  .barra-inferior a[aria-current="page"] { color: var(--noite); font-weight: 700; }
+  .barra-inferior a[aria-current="page"]::before { content: ''; position: absolute; top: -7px; width: 28px; height: 3px; border-radius: 0 0 3px 3px; background: var(--abobora); }
+  .bi-icone { position: relative; display: inline-flex; }
+  .bi-icone .contador { position: absolute; top: -6px; right: -10px; }
+  .zap-flutuante { bottom: calc(74px + env(safe-area-inset-bottom)); right: 12px; padding: 11px; }
+  .zap-flutuante svg { width: 22px; height: 22px; }
+  .torrada { bottom: calc(74px + env(safe-area-inset-bottom)); }
+  .rodape { margin-top: 40px; }
+
+  /* Cards: 2 por linha sem nada quebrando feio. */
+  .grade { gap: 10px; }
+  .card-corpo { padding: 10px; gap: 4px; }
+  .card-categoria { font-size: 10.5px; letter-spacing: .6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-modelos { display: none; }
+  .card-nome { font-size: 13.5px; line-height: 1.35; min-height: 36px; -webkit-line-clamp: 2; }
+  .card-preco { gap: 0 4px; }
+  .preco-de { font-size: 11px; width: 100%; }
+  .card .preco { font-size: 18px; }
+  .card .botao { height: 36px; font-size: 13px; padding: 0 8px; }
+  .card-fav { width: 34px; height: 34px; top: 6px; right: 6px; }
+  .selo { top: 6px; left: 6px; font-size: 10.5px; padding: 3px 6px; }
+  .secao { padding-top: 32px; }
+  .trilho-cabeca { margin-bottom: 14px; }
+  .trilho-cabeca h2 { font-size: 23px; }
+  .sobrelinha { font-size: 11.5px; }
+}
+/* Selo de quantidade de modelos sobre a foto (no celular substitui o texto ao lado da categoria). */
+.selo-modelos { position: absolute; left: 6px; bottom: 6px; z-index: 2; background: rgba(17, 16, 20, .78); color: var(--branco); border-radius: var(--r-selo); padding: 3px 7px; font-size: 10.5px; font-weight: 600; }
+@media (min-width: 900px) { .selo-modelos { display: none; } }
+/* Com a barra de compra fixa do produto aberta, o WhatsApp sobe para não cobrir o botão. */
+@media (max-width: 899px) { body:has(.compra-fixa:not([hidden])) .zap-flutuante { bottom: calc(140px + env(safe-area-inset-bottom)); } }
