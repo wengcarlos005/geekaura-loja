@@ -60,6 +60,7 @@ try {
         <div class="galeria-principal" data-foto-principal>
           <Foto src={fotoInicial} alt={p.titulo} tamanho={800} carregar="eager" />
         </div>
+        <p class="dica-zoom">Passe o mouse na foto para ampliar</p>
         {miniaturas.length > 1 && (
           <div class="miniaturas" aria-label="Mais fotos">
             {miniaturas.map((f, i) => (
@@ -165,7 +166,7 @@ try {
 <style>
   .produto { display: grid; gap: 24px; padding-top: 16px; }
   .produto > * { min-width: 0; }
-  @media (min-width: 900px) { .produto { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; padding-top: 24px; } .galeria { position: sticky; top: 16px; align-self: start; } }
+  @media (min-width: 900px) { .produto { grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 56px; padding-top: 24px; } .galeria { position: sticky; top: 16px; align-self: start; } }
   .galeria { display: flex; flex-direction: column; gap: 10px; }
   .galeria-principal { aspect-ratio: 1 / 1; border-radius: var(--r-card); overflow: hidden; }
   .galeria-principal :global(.foto-reserva) { font-size: 15px; }
@@ -186,8 +187,15 @@ try {
   .titulo-linha { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
   .fav-produto { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--cinza-2); background: var(--branco); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color .15s, color .15s; }
   .fav-produto:hover { border-color: var(--noite); }
-  .galeria-principal :global(.foto img) { transition: opacity .25s ease, transform .4s ease; }
-  @media (hover: hover) { .galeria-principal:hover :global(.foto img) { transform: scale(1.06); } }
+  /* Zoom de lupa: no computador a foto fica menor (a original do marketplace não aguenta tela
+     cheia) e amplia sob o mouse, seguindo o ponteiro. */
+  .galeria-principal :global(.foto img) { transition: opacity .25s ease, transform .25s ease; }
+  @media (hover: hover) and (pointer: fine) {
+    .galeria-principal { cursor: zoom-in; }
+    .galeria-principal.zoom :global(.foto img) { transform: scale(2); transition: opacity .25s ease; }
+  }
+  .dica-zoom { font-size: 12px; color: var(--cinza-3); text-align: center; }
+  @media not ((hover: hover) and (pointer: fine)) { .dica-zoom { display: none; } }
   @media (min-width: 900px) { .compra h1 { font-size: 32px; } }
   .preco-bloco { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .preco-grande { font-size: 34px; }
@@ -245,6 +253,19 @@ try {
     const m = (e.target as HTMLElement).closest<HTMLElement>('.miniatura');
     if (m?.dataset.foto) mostrarFoto(m.dataset.foto);
   });
+
+  // Lupa: a origem da ampliação acompanha o ponteiro.
+  if (principal && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    const mover = (e: MouseEvent) => {
+      const img = principal.querySelector<HTMLImageElement>('.foto img');
+      if (!img) return;
+      const r = principal.getBoundingClientRect();
+      img.style.transformOrigin = `${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`;
+    };
+    principal.addEventListener('mouseenter', e => { mover(e); principal.classList.add('zoom'); });
+    principal.addEventListener('mousemove', mover);
+    principal.addEventListener('mouseleave', () => principal.classList.remove('zoom'));
+  }
 
   const qtd = document.querySelector<HTMLInputElement>('#qtd');
   document.querySelector('[data-quantidade]')?.addEventListener('click', e => {
