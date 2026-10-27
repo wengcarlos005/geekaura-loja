@@ -1,0 +1,46 @@
+---
+// Moldura da área do cliente: menu lateral (no celular, abas roláveis no topo) e o conteúdo.
+import Simbolo from './Simbolo.astro';
+interface Props { atual: 'pedidos' | 'dados' | 'enderecos'; nome: string; email: string; }
+const { atual, nome, email } = Astro.props;
+const itens = [
+  { id: 'pedidos', href: '/conta', rotulo: 'Meus pedidos', icone: 'pacote' },
+  { id: 'enderecos', href: '/conta/enderecos', rotulo: 'Endereços', icone: 'mapa' },
+  { id: 'dados', href: '/conta/dados', rotulo: 'Meus dados', icone: 'usuario' },
+] as const;
+const iniciais = nome.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]!.toUpperCase()).join('');
+---
+<section class="recipiente painel-conta">
+  <aside class="conta-menu" data-revelar="esquerda">
+    <div class="conta-quem">
+      <span class="avatar" aria-hidden="true">{iniciais}</span>
+      <span class="conta-quem-texto"><strong>{nome}</strong><span class="nota">{email}</span></span>
+    </div>
+    <nav aria-label="Minha conta">
+      {itens.map(i => <a href={i.href} aria-current={atual === i.id ? 'page' : undefined}><Simbolo nome={i.icone} tamanho={20} />{i.rotulo}</a>)}
+      <a href="/favoritos"><Simbolo nome="coracao" tamanho={20} />Favoritos</a>
+      <form method="post" action="/api/conta/sair"><button type="submit"><Simbolo nome="sair" tamanho={20} />Sair</button></form>
+    </nav>
+  </aside>
+  <div class="conta-conteudo" data-revelar><slot /></div>
+</section>
+<style>
+  .painel-conta { display: grid; gap: 20px; padding-top: 24px; }
+  @media (min-width: 900px) { .painel-conta { grid-template-columns: 260px minmax(0, 1fr); gap: 40px; padding-top: 32px; } }
+  .painel-conta > * { min-width: 0; }
+  .conta-menu { display: flex; flex-direction: column; gap: 16px; }
+  @media (min-width: 900px) { .conta-menu { position: sticky; top: 150px; align-self: start; } }
+  .conta-quem { display: flex; gap: 12px; align-items: center; }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--abobora); color: var(--noite); font-family: var(--fonte-titulo); font-weight: 700; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .conta-quem-texto { display: flex; flex-direction: column; min-width: 0; }
+  .conta-quem-texto .nota { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conta-menu nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
+  @media (min-width: 900px) { .conta-menu nav { flex-direction: column; gap: 2px; margin: 0; padding: 0; overflow: visible; } }
+  .conta-menu nav a, .conta-menu nav button { flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-botao); border: 1px solid var(--cinza-2); font-size: 14.5px; font-weight: 500; text-decoration: none; background: var(--branco); cursor: pointer; color: var(--noite); white-space: nowrap; transition: background-color .15s; }
+  @media (min-width: 900px) { .conta-menu nav a, .conta-menu nav button { border: 0; width: 100%; } }
+  .conta-menu nav a:hover, .conta-menu nav button:hover { background: var(--cinza-1); }
+  .conta-menu nav a[aria-current="page"] { background: var(--noite); border-color: var(--noite); color: var(--branco); }
+  .conta-menu form { margin: 0; display: flex; }
+  .conta-conteudo { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .conta-conteudo :global(h1) { font-size: 30px; font-weight: 700; }
+</style>

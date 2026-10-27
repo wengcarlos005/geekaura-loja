@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import PainelAcesso from '../components/PainelAcesso.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { modoDemo } from '../lib/ryzo';
+import { envDe } from '../lib/api';
+const demo = modoDemo(envDe(Astro));
+---
+<Base titulo="Recuperar senha" descricao="Crie uma senha nova para a sua conta Geek Aura." noindex>
+  <PainelAcesso titulo="Recuperar senha" subtitulo="Mandamos um código de 6 números para o seu e-mail. Com ele você cria uma senha nova.">
+    {demo && <p class="aviso aviso-info">Modo demonstração: nenhum e-mail é enviado. Use qualquer código de 6 números.</p>}
+    <form class="form-conta" data-form-conta data-endpoint="/api/conta/recuperar" data-passo-1 novalidate>
+      <div class="campo"><label for="email">E-mail da conta</label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" required /></div>
+      <p class="aviso aviso-erro" data-erro hidden role="alert"></p>
+      <button class="botao botao-primario botao-largo" type="submit">Enviar código</button>
+    </form>
+    <form class="form-conta" data-form-conta data-endpoint="/api/conta/redefinir" data-volta="/conta" data-passo-2 hidden novalidate>
+      <p class="aviso aviso-ok" role="status">Se existir uma conta com <strong data-email-enviado></strong>, o código chega em instantes. Confira também o spam.</p>
+      <input type="hidden" name="email" />
+      <div class="campo"><label for="codigo">Código de 6 números</label><input id="codigo" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required class="campo-codigo" /></div>
+      <div class="campo">
+        <label for="senha">Nova senha</label>
+        <div class="campo-senha">
+          <input id="senha" name="senha" type="password" autocomplete="new-password" minlength="8" maxlength="128" required />
+          <button type="button" class="ver-senha" data-ver-senha aria-pressed="false" aria-label="Mostrar senha"><Simbolo nome="olho" tamanho={20} /></button>
+        </div>
+      </div>
+      <p class="aviso aviso-erro" data-erro hidden role="alert"></p>
+      <button class="botao botao-primario botao-largo" type="submit">Salvar senha e entrar</button>
+      <button class="botao-texto" type="button" data-voltar-passo>Usar outro e-mail</button>
+    </form>
+    <p class="troca">Lembrou? <a class="link-forte" href="/entrar">Voltar para entrar</a></p>
+  </PainelAcesso>
+</Base>
+<script>
+  import '../scripts/formConta';
+  const p1 = document.querySelector<HTMLFormElement>('[data-passo-1]')!;
+  const p2 = document.querySelector<HTMLFormElement>('[data-passo-2]')!;
+  p1.addEventListener('conta-ok', () => {
+    const email = (p1.elements.namedItem('email') as HTMLInputElement).value.trim();
+    (p2.elements.namedItem('email') as HTMLInputElement).value = email;
+    p2.querySelector('[data-email-enviado]')!.textContent = email;
+    p1.hidden = true; p2.hidden = false;
+    p2.querySelector<HTMLInputElement>('#codigo')?.focus();
+  });
+  p2.querySelector('[data-voltar-passo]')?.addEventListener('click', () => { p2.hidden = true; p1.hidden = false; });
+</script>

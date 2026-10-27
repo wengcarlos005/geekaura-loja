@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { validarEntrega } from '../../../lib/validacao';
 import { envDe, erro, falha, gravarCarrinho, json, lerCarrinho, lerJson, limitar, origemValida } from '../../../lib/api';
 import { criarPedido } from '../../../lib/ryzo';
+import { lerSessao } from '../../../lib/conta';
 
 export const POST: APIRoute = async ctx => {
   try {
@@ -19,9 +20,11 @@ export const POST: APIRoute = async ctx => {
     if (!itens.length) return erro('Seu carrinho está vazio.', 409);
 
     const e = entrega.valor;
+    // Logado, o pedido entra na conta do cliente (o Ryzo confere a sessão; vencida, vira pedido avulso).
+    const sessao = await lerSessao(ctx);
     const criado = await criarPedido(envDe(ctx), {
       itens, comprador: { nome: e.nome, email: e.email }, frete: { servico_id: servico }, entrega: e,
-    });
+    }, sessao && sessao.t !== 'demo' ? sessao.t : null);
     await gravarCarrinho(ctx, []);
     return json({ ok: true, codigo: criado.codigo, total: criado.total }, 201);
   } catch (e) {
