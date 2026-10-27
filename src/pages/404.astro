@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+Astro.response.status = 404;
+---
+<Base titulo="Página não encontrada" descricao="Esta página não existe ou o produto saiu de venda." noindex>
+  <section class="recipiente nao-achou">
+    <img src="/img/auri-320.webp" width="200" height="200" alt="Auri, o mascote da Geek Aura" />
+    <p class="sobrelinha">Erro 404</p>
+    <h1>Essa peça não está na caixa.</h1>
+    <p>A página que você procurou não existe ou o produto saiu de venda. Que tal procurar de novo?</p>
+    <form class="busca" role="search" action="/busca" method="get">
+      <label for="busca-404" class="sr-only">Buscar na loja</label>
+      <input id="busca-404" type="search" name="q" maxlength="80" placeholder="Buscar na Geek Aura" />
+      <button type="submit" aria-label="Buscar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></svg></button>
+    </form>
+    <a class="botao botao-primario" href="/">Voltar ao início</a>
+  </section>
+</Base>
+<style>
+  .nao-achou { max-width: 560px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding-top: 40px; }
+  .nao-achou img { width: 180px; height: 180px; background: var(--abobora); border-radius: var(--r-card); }
+  .nao-achou h1 { font-size: 32px; font-weight: 700; }
+  .nao-achou > p:not(.sobrelinha) { color: var(--texto-suave); }
+  .nao-achou .busca { width: 100%; order: 0; flex: none; }
+</style>

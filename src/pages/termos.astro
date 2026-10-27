@@ -1,0 +1,19 @@
+---
+import PaginaLegal from '../components/PaginaLegal.astro';
+import { LOJA } from '../lib/loja';
+---
+<PaginaLegal titulo="Termos de uso" descricao="Condições de compra na loja Geek Aura: preços, pagamento, entrega, trocas e responsabilidades.">
+  <p>Estes termos valem para as compras feitas em geekaura.com.br, loja da {LOJA.razaoSocial}, CNPJ {LOJA.cnpj}, {LOJA.endereco}.</p>
+  <h2>Preços e estoque</h2>
+  <p>Os preços estão em reais e podem mudar sem aviso, mas o preço que vale é o mostrado no fechamento do pedido. O estoque é conferido na hora de criar o pedido e de novo na confirmação do pagamento; se um item acabar nesse intervalo, avisamos e devolvemos o valor.</p>
+  <h2>Pagamento</h2>
+  <p>Aceitamos Pix, cartão de crédito e boleto, processados pelo Mercado Pago. O pedido só é separado depois da aprovação do pagamento. Pix e boleto não pagos dentro da validade são cancelados.</p>
+  <h2>Entrega</h2>
+  <p>Postamos {LOJA.prazoPostagem}. Prazos e custos de entrega estão em <a href="/frete-e-prazos">Frete e prazos</a>.</p>
+  <h2>Trocas, devoluções e garantia</h2>
+  <p>Seguimos o Código de Defesa do Consumidor. Os detalhes estão em <a href="/trocas-e-devolucoes">Trocas e devoluções</a>.</p>
+  <h2>Produtos com peças pequenas</h2>
+  <p>Vários produtos têm peças pequenas e não são indicados para crianças menores de 3 anos. Respeite a idade indicada em cada anúncio.</p>
+  <h2>Contato</h2>
+  <p><a href={`mailto:${LOJA.email}`}>{LOJA.email}</a> · WhatsApp <a href={LOJA.whatsappLink} rel="noopener" target="_blank">{LOJA.whatsapp}</a></p>
+</PaginaLegal>

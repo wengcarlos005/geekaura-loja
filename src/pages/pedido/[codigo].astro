@@ -1,0 +1,240 @@
+---
+import Base from '../../layouts/Base.astro';
+import Simbolo from '../../components/Simbolo.astro';
+import { codigoDePedidoValido, precoBRL } from '../../lib/formato';
+import { envDe } from '../../lib/api';
+import { configPagamento, modoDemo, pagamento as buscarPagamento, pedido as buscarPedido, type ConfigPagamento, type Pagamento } from '../../lib/ryzo';
+import { LOJA } from '../../lib/loja';
+
+const codigo = codigoDePedidoValido(Astro.params.codigo);
+if (!codigo) return Astro.rewrite('/404');
+const env = envDe(Astro);
+const pedido = await buscarPedido(env, codigo);
+if (!pedido) return Astro.rewrite('/404');
+
+let pagamento: Pagamento | null = null;
+let status = pedido.status;
+if (status === 'aguardando_pagamento' || status === 'processando') {
+  const r = await buscarPagamento(env, codigo).catch(() => null);
+  pagamento = r?.pagamento ?? null;
+  status = r?.status ?? status;
+}
+let config: ConfigPagamento | null = null;
+let erroConfig = '';
+const FINAIS_RUINS = ['recusado', 'expirado', 'cancelado', 'erro'];
+const escolher = status === 'aguardando_pagamento' && (!pagamento || FINAIS_RUINS.includes(pagamento.status));
+if (escolher) {
+  try { config = await configPagamento(env); } catch (e: any) { erroConfig = e?.message || 'Pagamento indisponível agora.'; }
+}
+const demo = modoDemo(env);
+const pix = status === 'aguardando_pagamento' && pagamento?.metodo === 'pix' && pagamento.status === 'aguardando' ? pagamento : null;
+const boleto = status === 'aguardando_pagamento' && pagamento?.metodo === 'boleto' && pagamento.status === 'aguardando' ? pagamento : null;
+const recusado = pagamento && FINAIS_RUINS.includes(pagamento.status) ? pagamento : null;
+
+const ROTULO: Record<string, string> = {
+  aguardando_pagamento: 'Aguardando pagamento', processando: 'Confirmando pagamento', pago: 'Pagamento aprovado',
+  sem_estoque: 'Problema de estoque', cancelado: 'Cancelado',
+};
+const enviado = !!pedido.envio?.rastreio;
+const passos = [
+  { nome: 'Pedido feito', feito: true },
+  { nome: 'Pagamento aprovado', feito: status === 'pago' },
+  { nome: 'Postado', feito: status === 'pago' && enviado },
+];
+const subtotal = pedido.itens.reduce((s, i) => s + i.preco * i.qtd, 0);
+const MOTIVO_RECUSA: Record<string, string> = {
+  cc_rejected_insufficient_amount: 'Saldo ou limite insuficiente.',
+  cc_rejected_bad_filled_security_code: 'Código de segurança incorreto.',
+  cc_rejected_bad_filled_date: 'Data de validade incorreta.',
+  cc_rejected_bad_filled_other: 'Algum dado do cartão está incorreto.',
+  cc_rejected_call_for_authorize: 'O banco pediu autorização. Ligue para o banco e tente de novo.',
+  cc_rejected_high_risk: 'O pagamento foi recusado pela análise de segurança. Tente outro meio.',
+};
+const fmtData = (iso: string | null) => iso ? new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+---
+<Base titulo={`Pedido ${codigo}`} descricao="Acompanhe seu pedido na Geek Aura." noindex>
+  <section class="recipiente pedido" data-pedido={codigo} data-status={status} data-acompanhar={status === 'aguardando_pagamento' && pagamento?.status === 'aguardando' || status === 'processando' ? '' : undefined}>
+    <div class="pedido-cabeca">
+      <div>
+        <p class="sobrelinha">Pedido</p>
+        <h1>{codigo}</h1>
+      </div>
+      <span class:list={['estado', `estado-${status}`]}>{ROTULO[status] ?? status}</span>
+    </div>
+
+    <ol class="passos" aria-label="Andamento">
+      {passos.map(p => <li class:list={{ feito: p.feito }}><span class="bolinha" aria-hidden="true"></span>{p.nome}{p.feito && <span class="sr-only"> (concluído)</span>}</li>)}
+    </ol>
+
+    <div class="pedido-grade">
+      <div class="pedido-principal">
+        {status === 'pago' && (
+          <div class="aviso aviso-ok bloco">
+            <strong>Pagamento aprovado. Obrigado pela compra!</strong>
+            <p>Separamos e conferimos tudo e postamos {LOJA.prazoPostagem}. O código de rastreio aparece aqui e chega no seu e-mail.</p>
+          </div>
+        )}
+        {status === 'processando' && <div class="aviso aviso-info bloco"><strong>Estamos confirmando o seu pagamento.</strong><p>Esta página atualiza sozinha.</p></div>}
+        {status === 'sem_estoque' && <div class="aviso aviso-erro bloco"><strong>Um item acabou antes da confirmação do pagamento.</strong><p>O valor será devolvido pelo Mercado Pago. Fale com a gente pelo <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp</a> se preferir trocar por outro produto.</p></div>}
+        {status === 'cancelado' && <div class="aviso aviso-info bloco"><strong>Este pedido foi cancelado.</strong><p>Se foi engano, é só fazer um pedido novo. Dúvidas: {LOJA.email}.</p></div>}
+
+        {pix && (
+          <div class="painel pagamento-pix">
+            <h2><Simbolo nome="pix" tamanho={22} /> Pague com Pix</h2>
+            <p>Abra o app do seu banco, escolha Pix e leia o QR Code ou cole o código abaixo. A aprovação é na hora e esta página atualiza sozinha.</p>
+            <div class="pix-corpo">
+              {pix.pix?.qr_base64 ? (
+                <img class="qr" src={`data:image/png;base64,${pix.pix.qr_base64}`} width="220" height="220" alt="QR Code do Pix" />
+              ) : (
+                <div class="qr qr-vazio" role="img" aria-label="QR Code indisponível">{demo ? 'QR Code de demonstração' : 'Use o código abaixo'}</div>
+              )}
+              <div class="pix-codigo">
+                <label for="pix-copia" class="campo-rotulo">Pix copia e cola</label>
+                <textarea id="pix-copia" readonly rows="4">{pix.pix?.qr}</textarea>
+                <button class="botao botao-escuro" type="button" data-copiar="#pix-copia"><Simbolo nome="copiar" tamanho={18} />Copiar código</button>
+                {pix.expira_em && <p class="nota">Válido até {fmtData(pix.expira_em)}.</p>}
+              </div>
+            </div>
+            <p class="aguardando" aria-live="polite" data-aguardando>Aguardando o pagamento…</p>
+          </div>
+        )}
+
+        {boleto && boleto.boleto && (
+          <div class="painel">
+            <h2>Boleto gerado</h2>
+            <p>O boleto é compensado em até 3 dias úteis depois de pago. Postamos depois da compensação.</p>
+            <label for="linha-boleto" class="campo-rotulo">Linha digitável</label>
+            <textarea id="linha-boleto" readonly rows="2">{boleto.boleto.linha}</textarea>
+            <div class="acoes-boleto">
+              <button class="botao botao-escuro" type="button" data-copiar="#linha-boleto"><Simbolo nome="copiar" tamanho={18} />Copiar linha</button>
+              <a class="botao botao-contorno" href={boleto.boleto.url} rel="noopener" target="_blank">Abrir boleto</a>
+            </div>
+            {boleto.expira_em && <p class="nota">Vence em {fmtData(boleto.expira_em)}.</p>}
+          </div>
+        )}
+
+        {escolher && (
+          <div class="painel escolher" data-escolher data-chave={config?.public_key ?? ''} data-ambiente={config?.ambiente ?? ''} data-total={pedido.total} data-demo={demo ? '' : undefined}>
+            <h2>Como você quer pagar?</h2>
+            {recusado && <p class="aviso aviso-erro">{recusado.metodo === 'cartao' ? `Pagamento com cartão recusado. ${MOTIVO_RECUSA[recusado.detalhe ?? ''] ?? 'Confira os dados ou tente outro meio.'}` : 'O pagamento anterior expirou. Escolha de novo.'}</p>}
+            {erroConfig ? <p class="aviso aviso-erro">{erroConfig}</p> : (
+              <>
+                <div class="metodos" role="radiogroup" aria-label="Forma de pagamento">
+                  {config?.metodos.includes('pix') && <label class="metodo"><input type="radio" name="metodo" value="pix" checked /><span><strong>Pix</strong><span class="nota">Aprovação na hora</span></span></label>}
+                  {config?.metodos.includes('cartao') && <label class="metodo"><input type="radio" name="metodo" value="cartao" /><span><strong>Cartão de crédito</strong><span class="nota">Parcelado pelo Mercado Pago</span></span></label>}
+                  {config?.metodos.includes('boleto') && <label class="metodo"><input type="radio" name="metodo" value="boleto" /><span><strong>Boleto</strong><span class="nota">Compensa em até 3 dias úteis</span></span></label>}
+                </div>
+
+                <details class="pagador" data-pagador open>
+                  <summary>Dados do pagador</summary>
+                  <div class="linha-campos">
+                    <div class="campo"><label for="pg-nome">Nome completo</label><input id="pg-nome" name="pg-nome" autocomplete="name" maxlength="80" /></div>
+                  </div>
+                  <div class="linha-campos duas">
+                    <div class="campo"><label for="pg-email">E-mail</label><input id="pg-email" name="pg-email" type="email" autocomplete="email" maxlength="120" /></div>
+                    <div class="campo"><label for="pg-cpf">CPF</label><input id="pg-cpf" name="pg-cpf" inputmode="numeric" maxlength="14" /></div>
+                  </div>
+                </details>
+
+                <div class="cartao" data-cartao hidden>
+                  {demo ? (
+                    <p class="aviso aviso-info">No modo demonstração o cartão é simulado: nenhum dado é pedido nem enviado, e o pagamento sai aprovado.</p>
+                  ) : (
+                    <form id="form-cartao" class="form-cartao">
+                      <div class="campo"><label for="mp-numero">Número do cartão</label><div id="mp-numero" class="mp-campo"></div></div>
+                      <div class="linha-campos duas">
+                        <div class="campo"><label for="mp-validade">Validade</label><div id="mp-validade" class="mp-campo"></div></div>
+                        <div class="campo"><label for="mp-cvv">Código de segurança</label><div id="mp-cvv" class="mp-campo"></div></div>
+                      </div>
+                      <div class="campo"><label for="mp-titular">Nome impresso no cartão</label><input id="mp-titular" autocomplete="cc-name" /></div>
+                      <div class="linha-campos duas">
+                        <div class="campo"><label for="mp-banco">Banco emissor</label><select id="mp-banco"></select></div>
+                        <div class="campo"><label for="mp-parcelas">Parcelas</label><select id="mp-parcelas"></select></div>
+                      </div>
+                      <select id="mp-doc-tipo" hidden></select>
+                      <input id="mp-doc-numero" type="hidden" />
+                      <input id="mp-email" type="hidden" />
+                    </form>
+                  )}
+                </div>
+
+                <p class="aviso aviso-erro" data-erro-pagamento hidden role="alert"></p>
+                <button class="botao botao-primario botao-largo pagar" type="button" data-pagar>Pagar {precoBRL(pedido.total)}</button>
+                <p class="nota seguranca"><Simbolo nome="cadeado" tamanho={16} /> Pagamento processado pelo Mercado Pago{config?.ambiente === 'teste' && !demo ? ' (ambiente de teste)' : ''}.</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {pedido.envio && (
+          <div class="painel">
+            <h2><Simbolo nome="caminhao" tamanho={22} /> Entrega</h2>
+            <p>{pedido.envio.transportadora} {pedido.envio.servico} · até {pedido.envio.prazo_dias} {pedido.envio.prazo_dias === 1 ? 'dia útil' : 'dias úteis'} após a postagem.</p>
+            {pedido.envio.rastreio ? (
+              <p>Código de rastreio: <strong>{pedido.envio.rastreio}</strong> · <a href={`https://www.melhorrastreio.com.br/rastreio/${encodeURIComponent(pedido.envio.rastreio)}`} rel="noopener" target="_blank">acompanhar</a></p>
+            ) : <p class="nota">O código de rastreio aparece aqui assim que o pacote for postado.</p>}
+            {pedido.envio.status_transportadora && <p class="nota">Última atualização: {pedido.envio.status_transportadora}</p>}
+          </div>
+        )}
+      </div>
+
+      <aside class="painel resumo">
+        <h2>Itens</h2>
+        <ul class="itens-pedido">
+          {pedido.itens.map(i => <li><span>{i.qtd}× {i.titulo}{i.rotulo && <span class="nota"> · {i.rotulo}</span>}</span><span>{precoBRL(i.preco * i.qtd)}</span></li>)}
+        </ul>
+        <div class="linha-total"><span>Produtos</span><span>{precoBRL(subtotal)}</span></div>
+        <div class="linha-total"><span>Frete</span><span>{precoBRL(pedido.frete)}</span></div>
+        <div class="linha-total grande"><span>Total</span><span>{precoBRL(pedido.total)}</span></div>
+        <p class="nota">Guarde o código {codigo} para acompanhar o pedido. Dúvidas: <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp {LOJA.whatsapp}</a>.</p>
+      </aside>
+    </div>
+  </section>
+</Base>
+<style>
+  .pedido { padding-top: 24px; }
+  .pedido-cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
+  .pedido h1 { font-size: 26px; font-weight: 700; letter-spacing: .5px; word-break: break-all; }
+  @media (min-width: 600px) { .pedido h1 { font-size: 32px; } }
+  .estado { border-radius: var(--r-selo); padding: 6px 10px; font-size: 13px; font-weight: 600; background: var(--cinza-2); }
+  .estado-aguardando_pagamento, .estado-processando { background: var(--creme); color: var(--abobora-escura); border: 1px solid var(--creme-escuro); }
+  .estado-pago { background: #EAF3E7; color: #24451D; }
+  .estado-sem_estoque { background: #FDECEA; color: #7A1A12; }
+  .passos { list-style: none; margin: 20px 0 24px; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 13px; color: var(--cinza-3); }
+  .passos li { display: flex; flex-direction: column; gap: 8px; border-top: 3px solid var(--cinza-2); padding-top: 8px; }
+  .passos li.feito { border-top-color: var(--abobora); color: var(--noite); font-weight: 600; }
+  .bolinha { display: none; }
+  .pedido-grade { display: grid; gap: 20px; }
+  @media (min-width: 960px) { .pedido-grade { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; } }
+  .pedido-principal { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .bloco { display: flex; flex-direction: column; gap: 6px; }
+  .painel h2 { display: flex; align-items: center; gap: 10px; }
+  .pix-corpo { display: grid; gap: 16px; align-items: start; }
+  @media (min-width: 600px) { .pix-corpo { grid-template-columns: 220px minmax(0, 1fr); } }
+  .qr { width: 220px; height: 220px; border: 1px solid var(--cinza-2); border-radius: var(--r-card); justify-self: center; }
+  .qr-vazio { display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; background: var(--cinza-1); color: var(--cinza-3); font-size: 13px; background-image: repeating-linear-gradient(45deg, transparent 0 10px, rgba(17,16,20,.04) 10px 20px); }
+  .pix-codigo { display: flex; flex-direction: column; gap: 10px; }
+  .campo-rotulo { font-size: 13.5px; font-weight: 600; }
+  textarea { width: 100%; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 10px 12px; font-family: ui-monospace, monospace; font-size: 13px; resize: none; background: var(--cinza-1); word-break: break-all; }
+  .aguardando { font-size: 14px; color: var(--abobora-escura); font-weight: 600; }
+  .acoes-boleto { display: flex; flex-wrap: wrap; gap: 10px; }
+  .metodos { display: grid; gap: 8px; }
+  @media (min-width: 600px) { .metodos { grid-template-columns: repeat(3, 1fr); } }
+  .metodo { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--cinza-2); border-radius: var(--r-botao); padding: 12px; cursor: pointer; }
+  .metodo:has(input:checked) { border-color: var(--noite); box-shadow: inset 0 0 0 1px var(--noite); }
+  .metodo input { accent-color: var(--noite); width: 18px; height: 18px; margin: 0; }
+  .metodo > span { display: flex; flex-direction: column; font-size: 14.5px; }
+  .pagador { border-top: 1px solid var(--cinza-2); padding-top: 12px; }
+  .pagador summary { cursor: pointer; font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+  .pagador .linha-campos { margin-bottom: 10px; }
+  .cartao[hidden] { display: none; }
+  .form-cartao { display: flex; flex-direction: column; gap: 12px; margin: 0; }
+  .mp-campo { height: 46px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 12px; background: var(--branco); }
+  .pagar { height: 52px; font-size: 16px; }
+  .seguranca { display: flex; align-items: center; gap: 8px; }
+  .itens-pedido { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+  .itens-pedido li { display: flex; justify-content: space-between; gap: 12px; }
+</style>
+<script>
+  import '../../scripts/pagamento';
+</script>

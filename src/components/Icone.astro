@@ -1,0 +1,13 @@
+---
+// Ícone da marca (abóbora com capuz). Em tamanho pequeno some o cabo e os olhos, como no manual.
+interface Props { tamanho?: number; simples?: boolean; class?: string; }
+const { tamanho = 40, simples = tamanho < 36, class: classe } = Astro.props;
+---
+<svg viewBox="0 0 120 120" width={tamanho} height={tamanho} aria-hidden="true" class={classe}>
+  {!simples && <path d="M57 22 C56 12 61 6 69 6 L70 13 C65 14 63 17 63 23 Z" fill="#4C8A3F" />}
+  <path d="M60 20 C30 20 12 40 12 66 C12 94 32 112 60 112 C88 112 108 94 108 66 C108 40 90 20 60 20 Z" fill="#FF8A1F" />
+  <path d="M60 32 C50 42 32 52 32 74 C32 92 44 102 60 102 C76 102 88 92 88 74 C88 52 70 42 60 32 Z" fill="#111014" />
+  {!simples && <path d="M42 62 L55 57 L52 65 Z" fill="#FF8A1F" />}
+  {!simples && <path d="M78 62 L65 57 L68 65 Z" fill="#FF8A1F" />}
+  <path d="M40 74 L46 70 L51 75 L56 70 L60 74 L64 70 L69 75 L74 70 L80 74 C77 86 70 92 60 92 C50 92 43 86 40 74 Z" fill="#FF8A1F" />
+</svg>

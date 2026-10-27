@@ -1,0 +1,36 @@
+---
+import Logo from './Logo.astro';
+import Simbolo from './Simbolo.astro';
+import type { Categoria } from '../lib/loja';
+interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; }
+const { categorias, atual, qtdCarrinho, busca = '' } = Astro.props;
+---
+<div class="faixa-util">
+  <div class="recipiente">
+    <span class="so-largo">Enviamos para todo o Brasil</span>
+    <nav aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
+  </div>
+</div>
+<header class="topo">
+  <div class="recipiente">
+    <div class="topo-linha">
+      <Logo />
+      <form class="busca" role="search" action="/busca" method="get">
+        <label for="busca-topo" class="sr-only">Buscar na loja</label>
+        <input id="busca-topo" type="search" name="q" value={busca} maxlength="80" placeholder="Buscar por nome ou tema" autocomplete="off" />
+        <button type="submit" aria-label="Buscar"><Simbolo nome="busca" tamanho={20} /></button>
+      </form>
+      <nav class="conta" aria-label="Conta">
+        <a href="/pedido" aria-label="Meus pedidos"><Simbolo nome="usuario" /><span class="rotulo" aria-hidden="true">Meus pedidos</span></a>
+        <a href="/carrinho" aria-label={`Carrinho com ${qtdCarrinho} ${qtdCarrinho === 1 ? 'item' : 'itens'}`}>
+          <Simbolo nome="carrinho" /><span class="rotulo" aria-hidden="true">Carrinho</span>
+          <span class="contador" aria-hidden="true" data-contador data-zero={qtdCarrinho ? undefined : ''}>{qtdCarrinho}</span>
+        </a>
+      </nav>
+    </div>
+    <nav class="categorias" aria-label="Categorias">
+      <a href="/" aria-current={atual === 'inicio' ? 'page' : undefined}>Início</a>
+      {categorias.map(c => <a href={`/categoria/${c.slug}`} aria-current={atual === c.slug ? 'page' : undefined}>{c.nome}</a>)}
+    </nav>
+  </div>
+</header>

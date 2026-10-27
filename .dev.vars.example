@@ -1,0 +1,6 @@
+# Copie para .dev.vars (que não vai para o git) e preencha.
+# Sem RYZO_VITRINE_KEY o site roda em modo demonstração, com produtos de exemplo.
+RYZO_URL=https://ryzo-staging.wengcarlos005.workers.dev
+RYZO_VITRINE_KEY=
+# Qualquer texto longo e aleatório: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+CART_SECRET=

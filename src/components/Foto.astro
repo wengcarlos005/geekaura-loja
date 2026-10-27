@@ -1,0 +1,11 @@
+---
+// Foto de produto com reserva: o nome fica por baixo e aparece quando não há foto ou ela falha
+// (um script no <head> marca .falhou). A largura/altura evita o pulo de layout enquanto carrega.
+import Icone from './Icone.astro';
+interface Props { src: string | null | undefined; alt: string; nome?: string; tamanho?: number; carregar?: 'lazy' | 'eager'; class?: string; }
+const { src, alt, nome = alt, tamanho = 600, carregar = 'lazy', class: classe } = Astro.props;
+---
+<div class:list={['foto', classe, { falhou: !src }]}>
+  <div class="foto-reserva"><Icone tamanho={72} simples /><span>{nome}</span></div>
+  {src && <img src={src} alt={alt} width={tamanho} height={tamanho} loading={carregar} decoding="async" referrerpolicy="no-referrer" />}
+</div>

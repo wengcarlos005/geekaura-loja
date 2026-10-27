@@ -1,0 +1,19 @@
+---
+// Ícones de interface (traço), desenhados no mesmo grid de 24px da versão A.
+type Nome = 'busca' | 'usuario' | 'carrinho' | 'pix' | 'caminhao' | 'devolucao' | 'estrela' | 'lixo' | 'copiar' | 'cadeado' | 'zap';
+interface Props { nome: Nome; tamanho?: number; }
+const { nome, tamanho = 22 } = Astro.props;
+---
+<svg viewBox="0 0 24 24" width={tamanho} height={tamanho} fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  {nome === 'busca' && <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>}
+  {nome === 'usuario' && <><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>}
+  {nome === 'carrinho' && <><path d="M6 6h15l-1.5 9h-12z" /><path d="M6 6L5 3H2" /><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /></>}
+  {nome === 'pix' && <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 14h3v3h-3zM20 14v7M14 20h3" /></>}
+  {nome === 'caminhao' && <><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></>}
+  {nome === 'devolucao' && <><path d="M9 14L4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></>}
+  {nome === 'estrela' && <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />}
+  {nome === 'lixo' && <><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13M9 7V4h6v3" /></>}
+  {nome === 'copiar' && <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" /></>}
+  {nome === 'cadeado' && <><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>}
+  {nome === 'zap' && <path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z" />}
+</svg>

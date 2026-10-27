@@ -1,0 +1,14 @@
+{
+  // Worker do site. O Ryzo é outro Worker: este aqui só fala com ele pelas rotas /vitrine/v1/*.
+  "name": "geekaura-loja",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "binding": "ASSETS", "directory": "./dist" },
+  "observability": { "enabled": true },
+  "vars": {
+    // Ambiente de teste do Ryzo. Na produção: https://ryzoseller.com.br
+    "RYZO_URL": "https://ryzo-staging.wengcarlos005.workers.dev"
+  }
+  // Segredos (nunca aqui): wrangler secret put RYZO_VITRINE_KEY / CART_SECRET
+}

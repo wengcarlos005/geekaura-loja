@@ -1,0 +1,28 @@
+---
+import PaginaLegal from '../components/PaginaLegal.astro';
+import { LOJA } from '../lib/loja';
+---
+<PaginaLegal titulo="Política de privacidade" descricao="Quais dados a Geek Aura coleta, para quê, com quem compartilha e como você exerce seus direitos pela LGPD.">
+  <p>Esta política explica como a {LOJA.razaoSocial} (CNPJ {LOJA.cnpj}), dona da loja Geek Aura, trata os seus dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei 13.709/2018).</p>
+  <h2>Quais dados coletamos</h2>
+  <ul>
+    <li><strong>Para entregar o pedido:</strong> nome, CPF, e-mail, celular e endereço de entrega.</li>
+    <li><strong>Para o pagamento:</strong> nome, e-mail e CPF do pagador. Os dados do cartão são digitados diretamente no ambiente do Mercado Pago e não passam pelos nossos servidores.</li>
+    <li><strong>Carrinho:</strong> um cookie guarda apenas os códigos e quantidades dos produtos escolhidos.</li>
+  </ul>
+  <h2>Para que usamos</h2>
+  <p>Para processar o pedido, emitir a nota fiscal, enviar o produto, falar com você sobre a compra e cumprir obrigações legais e fiscais. Não vendemos dados e não usamos os seus dados para propaganda de terceiros.</p>
+  <h2>Com quem compartilhamos</h2>
+  <ul>
+    <li>Mercado Pago, para processar o pagamento.</li>
+    <li>Melhor Envio e a transportadora escolhida, para gerar a etiqueta e entregar.</li>
+    <li>ViaCEP, que recebe apenas o CEP digitado, para preencher o endereço.</li>
+    <li>Autoridades, quando a lei exigir.</li>
+  </ul>
+  <h2>Por quanto tempo guardamos</h2>
+  <p>Pelo tempo necessário para a entrega, trocas e garantia, e pelos prazos exigidos pela legislação fiscal. O endereço de entrega é guardado criptografado.</p>
+  <h2>Seus direitos</h2>
+  <p>Você pode pedir acesso, correção ou exclusão dos seus dados, e saber com quem eles foram compartilhados, pelo e-mail <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a>.</p>
+  <h2>Cookies</h2>
+  <p>Usamos apenas o cookie do carrinho, necessário para o site funcionar. Não usamos cookies de publicidade.</p>
+</PaginaLegal>

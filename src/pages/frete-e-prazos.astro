@@ -1,0 +1,17 @@
+---
+import PaginaLegal from '../components/PaginaLegal.astro';
+import { LOJA } from '../lib/loja';
+---
+<PaginaLegal titulo="Frete e prazos" descricao="Como calculamos o frete, em quanto tempo postamos e como acompanhar a entrega.">
+  <h2>Quanto custa</h2>
+  <p>O frete é calculado pelo CEP, na página do produto e no fechamento do pedido, com as opções dos Correios e de transportadoras parceiras. O valor depende do peso, do tamanho da embalagem e do destino. Você escolhe a opção antes de pagar e o valor não muda depois.</p>
+  <h2>Quando postamos</h2>
+  <p>Postamos {LOJA.prazoPostagem}. No Pix e no cartão a confirmação costuma ser imediata; no boleto, leva até 3 dias úteis para compensar.</p>
+  <h2>Quando chega</h2>
+  <p>O prazo mostrado em cada opção de frete conta a partir da postagem, em dias úteis. Atrasos da transportadora podem acontecer em feriados e períodos de alta demanda, como Black Friday e Natal.</p>
+  <h2>Rastreio</h2>
+  <p>Quando o pacote é postado, o código de rastreio aparece na página do seu pedido (<a href="/pedido">Acompanhar pedido</a>) e é enviado para o seu e-mail.</p>
+  <h2>Endereço e tentativas de entrega</h2>
+  <p>Confira o endereço antes de pagar. Se a transportadora não conseguir entregar e o pacote voltar para nós, entramos em contato para combinar um novo envio; o novo frete fica por conta do comprador quando o endereço informado estava incorreto.</p>
+  <p>Dúvidas: <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a> ou WhatsApp <a href={LOJA.whatsappLink} rel="noopener" target="_blank">{LOJA.whatsapp}</a>.</p>
+</PaginaLegal>

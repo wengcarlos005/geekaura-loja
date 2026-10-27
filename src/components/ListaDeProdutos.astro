@@ -1,0 +1,52 @@
+---
+// Página de listagem (categoria e busca): título, contagem, ordenação e grade.
+import CardProduto from './CardProduto.astro';
+import type { ProdutoResumo } from '../lib/ryzo';
+interface Props { titulo: string; subtitulo?: string; produtos: ProdutoResumo[]; ordem: string; vazio: string; }
+const { titulo, subtitulo, produtos, ordem, vazio } = Astro.props;
+const ordens = [
+  { valor: '', nome: 'Destaques' },
+  { valor: 'menor', nome: 'Menor preço' },
+  { valor: 'maior', nome: 'Maior preço' },
+];
+const params = new URLSearchParams(Astro.url.search);
+---
+<section class="recipiente lista">
+  <div class="lista-cabeca">
+    <div>
+      <h1>{titulo}</h1>
+      <p class="nota">{subtitulo ?? `${produtos.length} ${produtos.length === 1 ? 'produto' : 'produtos'}`}</p>
+    </div>
+    {produtos.length > 1 && (
+      <form method="get" class="ordenar" data-ordenar>
+        {[...params].filter(([k]) => k !== 'ordem').map(([k, v]) => <input type="hidden" name={k} value={v} />)}
+        <label for="ordem">Ordenar</label>
+        <select id="ordem" name="ordem">
+          {ordens.map(o => <option value={o.valor} selected={o.valor === ordem}>{o.nome}</option>)}
+        </select>
+        <noscript><button class="botao botao-contorno" type="submit">Aplicar</button></noscript>
+      </form>
+    )}
+  </div>
+  {produtos.length ? (
+    <div class="grade">{produtos.map((p, i) => <CardProduto produto={p} carregar={i < 4 ? 'eager' : 'lazy'} />)}</div>
+  ) : (
+    <div class="vazio">
+      <img src="/img/auri-320.webp" width="160" height="160" alt="" loading="lazy" />
+      <p>{vazio}</p>
+      <a class="botao botao-primario" href="/">Ver todos os produtos</a>
+    </div>
+  )}
+</section>
+<style>
+  .lista-cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 24px 0 20px; }
+  .lista h1 { font-size: 30px; font-weight: 700; }
+  @media (min-width: 768px) { .lista h1 { font-size: 38px; } }
+  .ordenar { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; }
+  .ordenar select { height: 40px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 10px; background: var(--branco); }
+  .vazio { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 40px 0; color: var(--texto-suave); }
+  .vazio img { width: 140px; height: 140px; background: var(--creme); border-radius: var(--r-card); }
+</style>
+<script>
+  document.querySelector<HTMLFormElement>('[data-ordenar] select')?.addEventListener('change', e => (e.target as HTMLSelectElement).form?.submit());
+</script>

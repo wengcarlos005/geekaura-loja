@@ -1,0 +1,82 @@
+---
+import '@fontsource/fredoka/600.css';
+import '@fontsource/fredoka/700.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '../styles/global.css';
+import Cabecalho from '../components/Cabecalho.astro';
+import Rodape from '../components/Rodape.astro';
+import { catalogo, modoDemo } from '../lib/ryzo';
+import { categoriasDoCatalogo, LOJA, type Categoria } from '../lib/loja';
+import { envDe, lerCarrinho } from '../lib/api';
+import { jsonLdSeguro } from '../lib/seo';
+
+interface Props {
+  titulo: string;
+  descricao: string;
+  atual?: string;
+  imagem?: string | null;
+  noindex?: boolean;
+  jsonLd?: unknown;
+  busca?: string;
+  tipoOg?: 'website' | 'product';
+}
+const { titulo, descricao, atual, imagem, noindex = false, jsonLd, busca, tipoOg = 'website' } = Astro.props;
+const env = envDe(Astro);
+const demo = modoDemo(env);
+
+let categorias: Categoria[] = [];
+try { categorias = categoriasDoCatalogo(await catalogo(env)); } catch { /* menu sem categorias se o Ryzo cair */ }
+let qtdCarrinho = 0;
+try { qtdCarrinho = (await lerCarrinho(Astro)).reduce((s, i) => s + i.qtd, 0); } catch { /* sem segredo: carrinho vazio */ }
+
+const tituloCompleto = titulo === LOJA.nome ? `${LOJA.nome} · Blocos de montar, jogos de cartas e colecionáveis` : `${titulo} · ${LOJA.nome}`;
+const canonico = new URL(Astro.url.pathname, LOJA.url).href;
+const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tituloCompleto}</title>
+    <meta name="description" content={descricao} />
+    <link rel="canonical" href={canonico} />
+    {(noindex || demo) && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#111014" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:site_name" content={LOJA.nome} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:type" content={tipoOg} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descricao} />
+    <meta property="og:url" content={canonico} />
+    <meta property="og:image" content={ogImagem} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {jsonLd && <script type="application/ld+json" set:html={jsonLdSeguro(jsonLd)} />}
+    <script is:inline>
+      // Foto que não carrega mostra o nome do produto por baixo (ver Foto.astro).
+      document.addEventListener('error', function (e) {
+        var t = e.target;
+        if (t && t.tagName === 'IMG' && t.parentNode && t.parentNode.classList && t.parentNode.classList.contains('foto')) t.parentNode.classList.add('falhou');
+      }, true);
+    </script>
+  </head>
+  <body>
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+    {demo && <div class="faixa-demo" role="note"><strong>Modo demonstração</strong> · produtos reais, pedidos e pagamentos simulados</div>}
+    <Cabecalho categorias={categorias} atual={atual} qtdCarrinho={qtdCarrinho} busca={busca} />
+    <main id="conteudo">
+      <slot />
+    </main>
+    <Rodape categorias={categorias} />
+    <div class="torrada" role="status" aria-live="polite" data-torrada></div>
+    <script>
+      import '../scripts/loja';
+    </script>
+  </body>
+</html>

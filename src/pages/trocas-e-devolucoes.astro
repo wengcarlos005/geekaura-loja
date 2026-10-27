@@ -1,0 +1,19 @@
+---
+import PaginaLegal from '../components/PaginaLegal.astro';
+import { LOJA } from '../lib/loja';
+---
+<PaginaLegal titulo="Trocas e devoluções" descricao="Arrependimento em até 7 dias, produto com defeito e como pedir troca ou devolução na Geek Aura.">
+  <h2>Arrependimento: 7 dias</h2>
+  <p>Pelo Código de Defesa do Consumidor (art. 49), compras pela internet podem ser devolvidas em até 7 dias corridos depois do recebimento, sem precisar explicar o motivo. Devolvemos o valor total pago, incluindo o frete de ida, e o frete da devolução é por nossa conta.</p>
+  <p>O produto deve voltar com todas as peças e acessórios. Se a embalagem lacrada foi aberta, tudo bem: o direito de arrependimento continua valendo.</p>
+  <h2>Produto com defeito ou errado</h2>
+  <p>Se chegou faltando peça, com defeito ou diferente do pedido, fale com a gente em até 90 dias (art. 26 do CDC). Mandamos a peça que falta, trocamos o produto ou devolvemos o dinheiro, como você preferir, dentro do prazo de 30 dias da lei.</p>
+  <h2>Como pedir</h2>
+  <ul>
+    <li>Escreva para <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a> ou chame no WhatsApp <a href={LOJA.whatsappLink} rel="noopener" target="_blank">{LOJA.whatsapp}</a> com o código do pedido (SITE-…).</li>
+    <li>Se for defeito ou peça faltando, mande uma foto: resolve mais rápido.</li>
+    <li>Enviamos as instruções de postagem da devolução. Não envie o produto sem falar com a gente antes.</li>
+  </ul>
+  <h2>Reembolso</h2>
+  <p>O reembolso é feito pelo mesmo meio de pagamento, pelo Mercado Pago, depois que o produto chega aqui e é conferido. No cartão, o estorno aparece na fatura conforme o prazo do banco; no Pix, o valor volta para a conta de origem.</p>
+</PaginaLegal>

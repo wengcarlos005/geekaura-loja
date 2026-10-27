@@ -1,0 +1,37 @@
+---
+import Foto from './Foto.astro';
+import { precoBRL } from '../lib/formato';
+import type { ProdutoResumo } from '../lib/ryzo';
+interface Props { produto: ProdutoResumo; carregar?: 'lazy' | 'eager'; }
+const { produto: p, carregar = 'lazy' } = Astro.props;
+const estoqueTotal = p.variacoes.reduce((s, v) => s + v.estoque, 0);
+const unica = p.variacoes.length === 1 ? p.variacoes[0] : null;
+const variasFaixas = new Set(p.variacoes.map(v => v.preco)).size > 1;
+const selo = !p.disponivel ? { texto: 'Esgotado', classe: 'selo-cinza' }
+  : estoqueTotal <= 5 ? { texto: 'Últimas unidades', classe: 'selo-abobora' } : null;
+const url = `/produto/${p.slug}`;
+---
+<article class="card" data-categoria={p.categoria}>
+  <a class="card-foto" href={url} tabindex="-1" aria-hidden="true">
+    {selo && <span class:list={['selo', selo.classe]}>{selo.texto}</span>}
+    <Foto src={p.fotos[0]} alt="" nome={p.titulo} tamanho={420} carregar={carregar} />
+  </a>
+  <div class="card-corpo">
+    <p class="card-categoria">{p.categoria}</p>
+    <a class="card-nome" href={url}>{p.titulo}</a>
+    <div class="card-preco">
+      {variasFaixas && <span class="preco-de">a partir de</span>}
+      <span class="preco">{precoBRL(p.preco_a_partir)}</span>
+    </div>
+    {unica && p.disponivel ? (
+      <form method="post" action="/api/carrinho" data-carrinho>
+        <input type="hidden" name="acao" value="adicionar" />
+        <input type="hidden" name="sku" value={unica.sku} />
+        <input type="hidden" name="qtd" value="1" />
+        <button class="botao botao-escuro" type="submit" aria-label={`Adicionar ${p.titulo} ao carrinho`}><span>Adicionar<span class="so-largo"> ao carrinho</span></span></button>
+      </form>
+    ) : (
+      <a class="botao botao-escuro" href={url} aria-disabled={p.disponivel ? undefined : 'true'}>{p.disponivel ? 'Escolher modelo' : 'Ver produto'}</a>
+    )}
+  </div>
+</article>

@@ -1,0 +1,257 @@
+---
+import Base from '../layouts/Base.astro';
+import Foto from '../components/Foto.astro';
+import Simbolo from '../components/Simbolo.astro';
+import { envDe, lerCarrinho } from '../lib/api';
+import { montarCarrinho } from '../lib/carrinhoVisivel';
+import { precoBRL, UFS } from '../lib/formato';
+
+const itens = await lerCarrinho(Astro).catch(() => []);
+if (!itens.length) return Astro.redirect('/carrinho', 303);
+const { linhas, subtotal, ok } = await montarCarrinho(envDe(Astro), itens);
+if (!ok) return Astro.redirect('/carrinho', 303);
+const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
+---
+<Base titulo="Finalizar pedido" descricao="Finalize seu pedido na Geek Aura." noindex>
+  <section class="recipiente">
+    <h1 class="titulo-pagina">Finalizar pedido</h1>
+    <noscript><p class="aviso aviso-erro">Para finalizar o pedido, ative o JavaScript do navegador.</p></noscript>
+    <div class="checkout">
+      <form class="etapas" data-checkout novalidate>
+        <fieldset class="etapa">
+          <legend><span class="num">1</span>Seus dados</legend>
+          <div class="linha-campos">
+            <div class="campo"><label for="nome">Nome completo</label><input id="nome" name="nome" autocomplete="name" maxlength="80" required /></div>
+          </div>
+          <div class="linha-campos duas">
+            <div class="campo"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="120" required /><span class="ajuda">Mandamos a confirmação e o rastreio para cá.</span></div>
+            <div class="campo"><label for="telefone">Celular com DDD</label><input id="telefone" name="telefone" type="tel" autocomplete="tel-national" inputmode="tel" maxlength="16" placeholder="(21) 90000-0000" required /></div>
+          </div>
+          <div class="linha-campos duas">
+            <div class="campo"><label for="cpf">CPF</label><input id="cpf" name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required /><span class="ajuda">Obrigatório para a nota fiscal e o envio.</span></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="etapa">
+          <legend><span class="num">2</span>Endereço de entrega</legend>
+          <div class="linha-campos duas">
+            <div class="campo"><label for="cep">CEP</label><input id="cep" name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required /><span class="ajuda" data-cep-ajuda>Preenchemos a rua para você.</span></div>
+          </div>
+          <div class="linha-campos tres">
+            <div class="campo"><label for="logradouro">Rua</label><input id="logradouro" name="logradouro" autocomplete="address-line1" maxlength="120" required /></div>
+            <div class="campo"><label for="numero">Número</label><input id="numero" name="numero" maxlength="20" required /></div>
+            <div class="campo"><label for="complemento">Complemento</label><input id="complemento" name="complemento" autocomplete="address-line2" maxlength="80" /></div>
+          </div>
+          <div class="linha-campos tres">
+            <div class="campo"><label for="bairro">Bairro</label><input id="bairro" name="bairro" maxlength="80" required /></div>
+            <div class="campo"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2" maxlength="80" required /></div>
+            <div class="campo"><label for="uf">UF</label>
+              <select id="uf" name="uf" autocomplete="address-level1" required>
+                <option value="">—</option>
+                {UFS.map(u => <option value={u}>{u}</option>)}
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="etapa">
+          <legend><span class="num">3</span>Frete</legend>
+          <div data-opcoes-frete class="opcoes"><p class="nota">Informe o CEP para ver as opções de entrega.</p></div>
+        </fieldset>
+
+        <p class="aviso aviso-erro" data-erro hidden role="alert"></p>
+        <button class="botao botao-primario botao-largo continuar" type="submit" data-enviar>Continuar para o pagamento</button>
+        <p class="nota seguranca"><Simbolo nome="cadeado" tamanho={16} /> O pagamento é feito no próximo passo, pelo Mercado Pago. Seu cartão não passa pela Geek Aura.</p>
+      </form>
+
+      <aside class="painel resumo">
+        <h2>Seu pedido</h2>
+        <ul class="mini-itens">
+          {linhas.map(l => (
+            <li>
+              <span class="mini-foto"><Foto src={l.foto} alt="" nome="" tamanho={96} /><span class="mini-qtd">{l.qtd}</span></span>
+              <span class="mini-nome">{l.titulo}{l.rotulo && <span class="nota"> · {l.rotulo}</span>}</span>
+              <span>{precoBRL(l.preco * l.qtd)}</span>
+            </li>
+          ))}
+        </ul>
+        <div class="linha-total"><span>Produtos ({qtdTotal})</span><span>{precoBRL(subtotal)}</span></div>
+        <div class="linha-total"><span>Frete</span><span data-valor-frete class="nota">a calcular</span></div>
+        <div class="linha-total grande"><span>Total</span><span data-total data-subtotal={subtotal}>{precoBRL(subtotal)}</span></div>
+        <a class="link-forte editar" href="/carrinho">Editar carrinho</a>
+      </aside>
+    </div>
+  </section>
+</Base>
+<style>
+  .titulo-pagina { font-size: 30px; font-weight: 700; padding: 24px 0 20px; }
+  .checkout { display: grid; gap: 24px; }
+  @media (min-width: 960px) { .checkout { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; } .resumo { position: sticky; top: 16px; } }
+  .resumo { order: -1; }
+  @media (min-width: 960px) { .resumo { order: 0; } }
+  .etapas { display: flex; flex-direction: column; gap: 20px; margin: 0; }
+  .etapa { border: 1px solid var(--cinza-2); border-radius: var(--r-card); padding: 18px; margin: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  @media (min-width: 600px) { .etapa { padding: 22px; } }
+  .etapa legend { font-family: var(--fonte-titulo); font-weight: 600; font-size: 19px; padding: 0 6px; display: flex; align-items: center; gap: 10px; }
+  .num { width: 26px; height: 26px; border-radius: 50%; background: var(--noite); color: var(--branco); font-size: 14px; display: inline-flex; align-items: center; justify-content: center; font-family: var(--fonte); }
+  .opcoes { display: flex; flex-direction: column; gap: 8px; }
+  .continuar { height: 52px; font-size: 16px; }
+  .seguranca { display: flex; align-items: center; gap: 8px; }
+  .mini-itens { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .mini-itens li { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 13.5px; }
+  .mini-foto { position: relative; width: 52px; height: 52px; border-radius: var(--r-botao); overflow: visible; }
+  .mini-foto :global(.foto) { border-radius: var(--r-botao); }
+  .mini-foto :global(.foto-reserva span) { display: none; }
+  .mini-qtd { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--grafite); color: var(--branco); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+  .mini-nome { line-height: 1.35; }
+  .editar { text-align: center; font-size: 14px; }
+</style>
+<style is:global>
+  .opcao-frete { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--cinza-2); border-radius: var(--r-botao); padding: 12px 14px; cursor: pointer; font-size: 14.5px; }
+  .opcao-frete:has(input:checked) { border-color: var(--noite); box-shadow: inset 0 0 0 1px var(--noite); }
+  .opcao-frete input { accent-color: var(--noite); width: 18px; height: 18px; margin: 0; }
+  .opcao-frete .opcao-nome { flex: 1; display: flex; flex-direction: column; }
+  .opcao-frete .opcao-prazo { font-size: 13px; color: var(--cinza-3); }
+  .opcao-frete strong { font-family: var(--fonte-titulo); font-size: 17px; }
+</style>
+<script>
+  import { cepFormatado, cepValido, cpfValido, emailValido, precoBRL, somenteDigitos, telefoneValido } from '../lib/formato';
+
+  const form = document.querySelector<HTMLFormElement>('[data-checkout]')!;
+  const caixaErro = form.querySelector<HTMLElement>('[data-erro]')!;
+  const opcoes = form.querySelector<HTMLElement>('[data-opcoes-frete]')!;
+  const valorFrete = document.querySelector<HTMLElement>('[data-valor-frete]')!;
+  const total = document.querySelector<HTMLElement>('[data-total]')!;
+  const subtotal = Number(total.dataset.subtotal);
+  const campo = (n: string) => form.elements.namedItem(n) as HTMLInputElement;
+
+  // Máscaras leves: só formatam enquanto digita, a validação de verdade é no servidor.
+  const mascaras: Record<string, (d: string) => string> = {
+    cpf: d => d.slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'),
+    cep: d => d.slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2'),
+    telefone: d => d.slice(0, 11).replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d)(\d{4})$/, '$1-$2'),
+  };
+  form.addEventListener('input', e => {
+    const el = e.target as HTMLInputElement;
+    if (mascaras[el.name]) el.value = mascaras[el.name](somenteDigitos(el.value));
+    el.removeAttribute('aria-invalid');
+  });
+
+  function mostrarErro(texto: string, nomeCampo?: string) {
+    caixaErro.textContent = texto;
+    caixaErro.hidden = false;
+    if (nomeCampo) { const c = campo(nomeCampo); c?.setAttribute('aria-invalid', 'true'); c?.focus(); }
+    else caixaErro.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  function atualizarTotal() {
+    const escolhida = form.querySelector<HTMLInputElement>('input[name="frete"]:checked');
+    const frete = escolhida ? Number(escolhida.dataset.preco) : NaN;
+    valorFrete.textContent = escolhida ? precoBRL(frete) : 'a calcular';
+    valorFrete.classList.toggle('nota', !escolhida);
+    total.textContent = precoBRL(subtotal + (escolhida ? frete : 0));
+  }
+  form.addEventListener('change', e => { if ((e.target as HTMLInputElement).name === 'frete') atualizarTotal(); });
+
+  let ultimoCep = '';
+  async function aoMudarCep() {
+    const cep = cepValido(campo('cep').value);
+    if (!cep || cep === ultimoCep) return;
+    ultimoCep = cep;
+    campo('cep').value = cepFormatado(cep);
+    preencherEndereco(cep);
+    await cotar(cep);
+  }
+  campo('cep').addEventListener('input', () => { if (somenteDigitos(campo('cep').value).length === 8) aoMudarCep(); });
+  campo('cep').addEventListener('blur', aoMudarCep);
+
+  // ViaCEP é conveniência: se não responder, o comprador digita a rua e nada trava.
+  async function preencherEndereco(cep: string) {
+    const ajuda = form.querySelector<HTMLElement>('[data-cep-ajuda]')!;
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: AbortSignal.timeout(4000) });
+      const d = await r.json();
+      if (d.erro) { ajuda.textContent = 'CEP não encontrado. Confira ou preencha o endereço.'; return; }
+      for (const [nome, valor] of [['logradouro', d.logradouro], ['bairro', d.bairro], ['cidade', d.localidade], ['uf', d.uf]] as const) {
+        const c = campo(nome);
+        if (typeof valor === 'string' && valor && !c.value) c.value = valor.slice(0, 120);
+      }
+      ajuda.textContent = 'Endereço encontrado. Confira e informe o número.';
+      if (!campo('numero').value) campo('numero').focus();
+    } catch {
+      ajuda.textContent = 'Preencha o endereço abaixo.';
+    }
+  }
+
+  async function cotar(cep: string) {
+    opcoes.replaceChildren(Object.assign(document.createElement('p'), { className: 'nota', textContent: 'Calculando o frete…' }));
+    atualizarTotal();
+    try {
+      const r = await fetch('/api/frete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cep, carrinho: true }) });
+      const d = await r.json();
+      if (!d.ok) { opcoes.replaceChildren(Object.assign(document.createElement('p'), { className: 'aviso aviso-erro', textContent: d.error || 'Não foi possível calcular o frete.' })); ultimoCep = ''; return; }
+      const itens = (d.opcoes as { id: number; nome: string; transportadora: string; preco: number; prazo_dias: number }[])
+        .sort((a, b) => a.preco - b.preco)
+        .map((o, i) => {
+          const rotulo = document.createElement('label');
+          rotulo.className = 'opcao-frete';
+          const input = Object.assign(document.createElement('input'), { type: 'radio', name: 'frete', value: String(o.id), checked: i === 0 });
+          input.dataset.preco = String(o.preco);
+          const nome = document.createElement('span');
+          nome.className = 'opcao-nome';
+          const titulo = document.createElement('span');
+          titulo.textContent = `${o.transportadora} ${o.nome}`;
+          const prazo = document.createElement('span');
+          prazo.className = 'opcao-prazo';
+          prazo.textContent = `Chega em até ${o.prazo_dias} ${o.prazo_dias === 1 ? 'dia útil' : 'dias úteis'} após a postagem`;
+          nome.append(titulo, prazo);
+          const preco = document.createElement('strong');
+          preco.textContent = o.preco === 0 ? 'Grátis' : precoBRL(o.preco);
+          rotulo.append(input, nome, preco);
+          return rotulo;
+        });
+      opcoes.replaceChildren(...itens);
+      atualizarTotal();
+    } catch {
+      ultimoCep = '';
+      opcoes.replaceChildren(Object.assign(document.createElement('p'), { className: 'aviso aviso-erro', textContent: 'Sem conexão. Confira a internet e informe o CEP de novo.' }));
+    }
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    caixaErro.hidden = true;
+    const v = (n: string) => campo(n).value.trim();
+    if (v('nome').length < 3 || !v('nome').includes(' ')) return mostrarErro('Informe o nome completo.', 'nome');
+    if (!emailValido(v('email'))) return mostrarErro('Confira o e-mail.', 'email');
+    if (!telefoneValido(v('telefone'))) return mostrarErro('Confira o celular com DDD.', 'telefone');
+    if (!cpfValido(v('cpf'))) return mostrarErro('Confira o CPF.', 'cpf');
+    if (!cepValido(v('cep'))) return mostrarErro('Confira o CEP.', 'cep');
+    for (const [n, msg] of [['logradouro', 'Informe a rua.'], ['numero', 'Informe o número (ou "S/N").'], ['bairro', 'Informe o bairro.'], ['cidade', 'Informe a cidade.'], ['uf', 'Escolha o estado.']]) {
+      if (!v(n)) return mostrarErro(msg, n);
+    }
+    const frete = form.querySelector<HTMLInputElement>('input[name="frete"]:checked');
+    if (!frete) return mostrarErro('Escolha uma opção de frete.');
+
+    const botao = form.querySelector<HTMLButtonElement>('[data-enviar]')!;
+    botao.disabled = true;
+    botao.textContent = 'Criando o pedido…';
+    const entrega = Object.fromEntries(['nome', 'email', 'telefone', 'cpf', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf'].map(n => [n, v(n)]));
+    try {
+      const r = await fetch('/api/pedido', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entrega, frete: { servico_id: Number(frete.value) } }) });
+      const d = await r.json();
+      if (!d.ok) {
+        mostrarErro(d.error || 'Não foi possível criar o pedido.');
+        if (/frete/i.test(d.error || '')) { ultimoCep = ''; aoMudarCep(); }
+        botao.disabled = false; botao.textContent = 'Continuar para o pagamento';
+        return;
+      }
+      // O pagador do Mercado Pago é o mesmo comprador: guardado só nesta aba, para o próximo passo.
+      try { sessionStorage.setItem(`ga_pagador_${d.codigo}`, JSON.stringify({ nome: entrega.nome, email: entrega.email, cpf: somenteDigitos(entrega.cpf) })); } catch { /* aba anônima */ }
+      location.href = `/pedido/${d.codigo}`;
+    } catch {
+      mostrarErro('Sem conexão. Confira a internet e tente de novo.');
+      botao.disabled = false; botao.textContent = 'Continuar para o pagamento';
+    }
+  });
+</script>
