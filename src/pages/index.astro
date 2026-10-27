@@ -300,7 +300,7 @@ const jsonLd = {
   @media (min-width: 900px) { .bolha { width: 132px; } .bolha-1 { left: 2%; top: 16%; } .bolha-2 { right: 8%; top: 8%; } }
 
   .arte-produto { display: flex; align-items: center; justify-content: center; padding: 8px 22px 60px; }
-  @media (max-width: 899px) { .moldura { width: min(62%, 240px); } .s-preco { font-size: 24px; } }
+  @media (max-width: 899px) { .arte-produto .moldura { width: min(62%, 240px); } .s-preco { font-size: 24px; } }
   @media (min-width: 900px) { .arte-produto { padding: 40px 56px 64px 0; } }
   .gomos { position: absolute; width: 90%; height: 120%; left: 5%; top: -10%; opacity: .9; }
   .gira { animation: girar 60s linear infinite; }
@@ -327,6 +327,41 @@ const jsonLd = {
   .slide-aura:hover .carta-3 { transform: translateX(58%) rotate(16deg); }
   .slide-aura:hover .carta-2 { transform: translateY(-22px); }
 
+  /* ---------- Celular: banner baixo, texto e arte lado a lado ----------
+     O carrossel alto pintava a primeira tela inteira de uma cor só. No celular ele vira um banner
+     de ~210px, como nos apps de loja, e as categorias e os produtos já aparecem na primeira tela. */
+  @media (max-width: 899px) {
+    .topo-home { padding-top: 12px; }
+    .slide { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: none; min-height: 210px; }
+    .s-texto { padding: 18px 4px 34px 16px; gap: 8px; justify-content: center; }
+    .s-sobre, .s-sub, .s-acoes .link-forte { display: none; }
+    .s-titulo { font-size: 20px; line-height: 1.08; letter-spacing: 0; }
+    .s-acoes { margin-top: 2px; gap: 8px 10px; }
+    .s-acoes .botao { height: 36px; padding: 0 14px; font-size: 13px; }
+    .s-preco { font-size: 17px; }
+    .s-arte { min-height: 0; padding: 0 !important; }
+    .arte-mascote .halo { width: 120%; top: 55%; }
+    .arte-mascote .mascote { width: 96%; bottom: 0; }
+    .bolha { display: none; }
+    .arte-produto { align-items: center; padding: 14px 12px 30px 0 !important; }
+    .arte-produto .moldura { width: 100%; border-radius: 12px; }
+    .gomos { display: none; }
+    .peca { width: 52% !important; padding: 4px; border-radius: 10px; }
+    .peca-1 { left: 0; top: 12%; }
+    .peca-2 { right: 6%; top: 6%; }
+    .peca-3 { left: 26%; bottom: 26px !important; }
+    .carta { width: 54% !important; padding: 4px; }
+  }
+
+  @media (min-width: 600px) and (max-width: 899px) {
+    .slide { min-height: 280px; }
+    .s-texto { padding-left: 32px; }
+    .s-titulo { font-size: 30px; }
+    .s-acoes .botao { height: 44px; padding: 0 20px; font-size: 14.5px; }
+    .arte-produto { padding: 24px 32px 40px 0 !important; }
+    .arte-produto .moldura { max-width: 250px; }
+  }
+
   /* ---------- Categorias ---------- */
   .cats { display: grid; grid-auto-flow: column; grid-auto-columns: 42%; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 8px; scroll-padding: 0 16px; }
   .cats::-webkit-scrollbar { display: none; }
@@ -350,6 +385,21 @@ const jsonLd = {
   .cat-seta { position: relative; z-index: 2; width: 34px; height: 34px; border-radius: 50%; background: var(--branco); color: var(--noite); display: inline-flex; align-items: center; justify-content: center; transition: transform .25s; }
   .cat:hover .cat-foto { transform: scale(1.08) rotate(-4deg); }
   .cat:hover .cat-seta { transform: translateX(4px); }
+
+  /* No celular as categorias viram bolinhas com foto e nome, numa fileira só. */
+  @media (max-width: 599px) {
+    .cats { grid-auto-columns: 78px; gap: 10px; }
+    .cat { min-height: 0; padding: 0; background: none !important; color: var(--noite) !important; flex-direction: column; justify-content: flex-start; align-items: center; gap: 6px; text-align: center; overflow: visible; }
+    .cat-texto { order: 2; }
+    .cat-nome { font-family: var(--fonte); font-weight: 600; font-size: 12px; line-height: 1.2; }
+    .cat-qtd, .cat-seta { display: none; }
+    .cat-foto { order: 1; position: static; width: 72px; height: 72px; box-shadow: none; border: 2px solid var(--cinza-2); }
+    .cat-creme .cat-foto { background: var(--creme); }
+    .cat-noite .cat-foto { border-color: var(--noite); }
+    .cat-abobora .cat-foto { border-color: var(--abobora); }
+    .cat-aura .cat-foto { border-color: #2B1D5C; }
+    .cat:hover .cat-foto { transform: scale(1.05); }
+  }
 
   /* ---------- Faixas ---------- */
   .faixas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
