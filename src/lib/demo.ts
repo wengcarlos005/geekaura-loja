@@ -31,7 +31,7 @@ interface Bruto {
 const FEITOS_A_MAO: Bruto[] = [
   {
     slug: 'bonecos-ninja-dragao-blocos-de-montar',
-    titulo: 'Bonecos Ninja Dragão — blocos de montar',
+    titulo: 'Bonecos Ninja Dragão de blocos de montar',
     categoria: 'Blocos de montar',
     peso_g: 372, medidas: [33, 12, 6],
     descricao: `Descubra o Universo dos Bonecos Ninja Dragão!
@@ -67,7 +67,7 @@ Por que escolher nossos bonecos Ninja Dragão?
   },
   {
     slug: 'robo-dinossauro-2-em-1-blocos-de-montar',
-    titulo: 'Robô Dinossauro 2 em 1 — blocos de montar',
+    titulo: 'Robô Dinossauro 2 em 1 de blocos de montar',
     categoria: 'Blocos de montar',
     peso_g: 300, medidas: [33, 12, 6],
     descricao: `🦖 Robô Dinossauro 2 em 1 – Dinowars MechWarriors
@@ -106,7 +106,7 @@ Cada unidade corresponde a UM dinossauro. Para formar o MegaREX, adicione os 4 m
   },
   {
     slug: 'navio-porta-avioes-8-em-1-554-pecas',
-    titulo: 'Navio Porta-Aviões 8 em 1 — 554 peças',
+    titulo: 'Navio Porta-Aviões 8 em 1 com 554 peças',
     categoria: 'Blocos de montar',
     peso_g: 320, medidas: [33, 12, 6],
     fotos: [
@@ -135,7 +135,7 @@ Especificações Técnicas:
   },
   {
     slug: 'jogo-de-cartas-saboteur',
-    titulo: 'Saboteur — jogo de cartas',
+    titulo: 'Jogo de cartas Saboteur',
     categoria: 'Jogos de cartas',
     peso_g: 200, medidas: [10, 15, 4],
     descricao: `⛏️ Saboteur – Jogo de Cartas de Estratégia e Blefe
@@ -161,7 +161,7 @@ Cada jogador recebe secretamente um papel: minerador ou sabotador. Os mineradore
   },
   {
     slug: 'transformers-blokees-defender-figura-surpresa',
-    titulo: 'Transformers Blokees Defender — figura de montar surpresa',
+    titulo: 'Figura de montar surpresa Transformers Blokees Defender',
     categoria: 'Figuras e caixas surpresa',
     peso_g: 191, medidas: [8, 17, 27],
     // Anúncio da Shopee não tem foto por variação; estas são do mesmo produto no Mercado Livre.
@@ -200,7 +200,7 @@ Por ser um produto surpresa, o personagem é aleatório e não pode ser escolhid
   },
   {
     slug: 'estacao-espacial-inblox-blocos-de-montar',
-    titulo: 'Estação Espacial Inblox — blocos de montar',
+    titulo: 'Blocos de montar Estação Espacial Inblox',
     categoria: 'Blocos de montar',
     peso_g: 300, medidas: [33, 12, 6],
     descricao: `🚀 Estação Espacial Inblox – Blocos de Montar com Tema Espacial
@@ -278,7 +278,7 @@ Cada unidade corresponde a UM modelo. Para montar a coleção completa, adicione
   },
   {
     slug: 'jogo-taco-gato-cabra-queijo-pizza',
-    titulo: 'Taco Gato Cabra Queijo Pizza — jogo de cartas',
+    titulo: 'Jogo de cartas Taco Gato Cabra Queijo Pizza',
     categoria: 'Jogos de cartas',
     peso_g: 150, medidas: [10, 7, 3],
     fotos: [
@@ -322,6 +322,8 @@ for (const b of catalogoExtra as unknown as Bruto[]) {
   if (!b || !/^[a-z0-9-]{1,80}$/.test(b.slug) || slugs.has(b.slug) || !Array.isArray(b.variacoes)) continue;
   const variacoes = b.variacoes.filter(v => Array.isArray(v) && typeof v[0] === 'string' && !skusAMao.has(v[0]) && Number(v[3]) > 0);
   if (!variacoes.length) continue;
+  // Produto sem nenhuma foto fica fora da vitrine até ganhar uma: card só com o nome parece quebrado.
+  if (!(Array.isArray(b.fotos) && b.fotos.length) && !variacoes.some(v => v[2])) continue;
   slugs.add(b.slug);
   BRUTOS.push({ ...b, variacoes, fotos: Array.isArray(b.fotos) && b.fotos.length ? b.fotos : undefined });
 }
