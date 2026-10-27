@@ -1,0 +1,278 @@
+---
+import Base from '../../layouts/Base.astro';
+import Foto from '../../components/Foto.astro';
+import Simbolo from '../../components/Simbolo.astro';
+import { produto as buscarProduto } from '../../lib/ryzo';
+import { envDe } from '../../lib/api';
+import { precoBRL, slugificar } from '../../lib/formato';
+import { LOJA } from '../../lib/loja';
+import { resumo } from '../../lib/seo';
+
+const slug = String(Astro.params.slug || '');
+const p = await buscarProduto(envDe(Astro), slug);
+if (!p) return Astro.rewrite('/404');
+
+const comEstoque = p.variacoes.filter(v => v.estoque > 0);
+const escolhida = comEstoque[0] ?? p.variacoes[0];
+const temEscolha = p.variacoes.length > 1;
+const fotoInicial = escolhida?.foto ?? p.fotos[0] ?? null;
+const miniaturas = [...new Set([...p.fotos, ...p.variacoes.map(v => v.foto)].filter(Boolean) as string[])].slice(0, 8);
+const precos = p.variacoes.map(v => v.preco);
+const categoriaSlug = slugificar(p.categoria);
+const url = `${LOJA.url}/produto/${p.slug}`;
+
+const disponibilidade = (estoque: number) => (estoque > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: p.titulo,
+  description: resumo(p.descricao, 500),
+  image: miniaturas.slice(0, 5),
+  category: p.categoria,
+  sku: escolhida?.sku,
+  offers: p.variacoes.length > 1 ? {
+    '@type': 'AggregateOffer', priceCurrency: 'BRL', lowPrice: Math.min(...precos), highPrice: Math.max(...precos),
+    offerCount: p.variacoes.length, availability: disponibilidade(comEstoque.length), url,
+  } : {
+    '@type': 'Offer', priceCurrency: 'BRL', price: escolhida?.preco, availability: disponibilidade(escolhida?.estoque ?? 0), url,
+    seller: { '@type': 'Organization', name: LOJA.nome },
+  },
+};
+const textoEstoque = (escolhida?.estoque ?? 0) <= 5 ? `Últimas ${escolhida?.estoque} unidades` : 'Em estoque, pronto para envio';
+const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
+---
+<Base titulo={p.titulo} descricao={resumo(p.descricao) || p.titulo} imagem={fotoInicial} jsonLd={jsonLd} atual={categoriaSlug} tipoOg="product">
+  <div class="recipiente">
+    <nav class="migalhas" aria-label="Você está em">
+      <a href="/">Início</a><span aria-hidden="true">/</span>
+      <a href={`/categoria/${categoriaSlug}`}>{p.categoria}</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{p.titulo}</span>
+    </nav>
+
+    <div class="produto">
+      <div class="galeria">
+        <div class="galeria-principal" data-foto-principal>
+          <Foto src={fotoInicial} alt={p.titulo} tamanho={800} carregar="eager" />
+        </div>
+        {miniaturas.length > 1 && (
+          <div class="miniaturas" aria-label="Mais fotos">
+            {miniaturas.map((f, i) => (
+              <button type="button" class="miniatura" data-foto={f} aria-label={`Ver foto ${i + 1}`} aria-pressed={f === fotoInicial ? 'true' : 'false'}>
+                <Foto src={f} alt="" nome="" tamanho={120} />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="compra">
+        <p class="card-categoria">{p.categoria}</p>
+        <h1>{p.titulo}</h1>
+        <div class="preco-bloco">
+          <span class="preco preco-grande" data-preco>{precoBRL(escolhida?.preco ?? p.preco_a_partir)}</span>
+          <span class="nota">no Pix, cartão ou boleto</span>
+        </div>
+
+        {p.disponivel ? (
+          <form method="post" action="/api/carrinho" data-carrinho class="form-compra">
+            <input type="hidden" name="acao" value="adicionar" />
+            {temEscolha ? (
+              <fieldset class="variacoes">
+                <legend>Modelo: <strong data-rotulo>{escolhida?.rotulo}</strong></legend>
+                <div class="variacoes-lista">
+                  {p.variacoes.map(v => (
+                    <label class:list={['variacao', { esgotada: v.estoque <= 0 }]} title={v.rotulo ?? v.sku}>
+                      <input type="radio" name="sku" value={v.sku} checked={v === escolhida} disabled={v.estoque <= 0}
+                        data-preco={precoBRL(v.preco)} data-foto={v.foto ?? ''} data-rotulo={v.rotulo ?? ''} data-estoque={v.estoque} />
+                      <span class="variacao-foto"><Foto src={v.foto} alt="" nome="" tamanho={96} /></span>
+                      <span class="variacao-nome">{v.rotulo ?? v.sku}</span>
+                      {v.estoque <= 0 && <span class="variacao-esgotada">Esgotado</span>}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ) : (
+              <input type="hidden" name="sku" value={escolhida?.sku} />
+            )}
+            <div class="linha-compra">
+              <div class="quantidade" data-quantidade>
+                <button type="button" data-passo="-1" aria-label="Diminuir quantidade">−</button>
+                <label class="sr-only" for="qtd">Quantidade</label>
+                <input id="qtd" name="qtd" type="number" inputmode="numeric" min="1" max={Math.min(99, escolhida?.estoque ?? 1)} value="1" />
+                <button type="button" data-passo="1" aria-label="Aumentar quantidade">+</button>
+              </div>
+              <button class="botao botao-primario botao-comprar" type="submit"><Simbolo nome="carrinho" tamanho={20} />Adicionar ao carrinho</button>
+            </div>
+            <p class="estoque" data-estoque-texto>
+              {textoEstoque}
+            </p>
+          </form>
+        ) : (
+          <p class="aviso aviso-info">Este produto esgotou. Fale com a gente pelo <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp</a> para saber quando volta.</p>
+        )}
+
+        <div class="frete" data-frete>
+          <h2 class="frete-titulo"><Simbolo nome="caminhao" tamanho={20} /> Calcular frete e prazo</h2>
+          <form class="frete-form" data-frete-form>
+            <label class="sr-only" for="cep-produto">CEP</label>
+            <input id="cep-produto" name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required />
+            <button class="botao botao-contorno" type="submit">Calcular</button>
+          </form>
+          <a class="nota" href="https://buscacepinter.correios.com.br/app/endereco/index.php" rel="noopener" target="_blank">Não sei meu CEP</a>
+          <div data-frete-resultado aria-live="polite"></div>
+        </div>
+
+        <ul class="garantias">
+          <li><Simbolo nome="pix" tamanho={18} /> Pix aprovado na hora</li>
+          <li><Simbolo nome="devolucao" tamanho={18} /> 7 dias para devolver</li>
+          <li><Simbolo nome="cadeado" tamanho={18} /> Pagamento pelo Mercado Pago</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="descricao">
+      <h2>Sobre o produto</h2>
+      <div class="texto-longo">
+        {paragrafos.map(linhas => <p>{linhas.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>)}
+      </div>
+      {(p.peso_g || p.medidas_cm) && (
+        <dl class="ficha">
+          {p.medidas_cm && <><dt>Embalagem</dt><dd>{p.medidas_cm.comprimento} × {p.medidas_cm.largura} × {p.medidas_cm.altura} cm</dd></>}
+          {p.peso_g && <><dt>Peso com embalagem</dt><dd>{p.peso_g} g</dd></>}
+        </dl>
+      )}
+    </section>
+  </div>
+</Base>
+
+<style>
+  .produto { display: grid; gap: 24px; padding-top: 16px; }
+  .produto > * { min-width: 0; }
+  @media (min-width: 900px) { .produto { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; padding-top: 24px; } .galeria { position: sticky; top: 16px; align-self: start; } }
+  .galeria { display: flex; flex-direction: column; gap: 10px; }
+  .galeria-principal { aspect-ratio: 1 / 1; border-radius: var(--r-card); overflow: hidden; }
+  .galeria-principal :global(.foto-reserva) { font-size: 15px; }
+  .miniaturas { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .miniatura { flex: 0 0 64px; width: 64px; height: 64px; padding: 0; border: 1.5px solid var(--cinza-2); border-radius: var(--r-botao); overflow: hidden; cursor: pointer; background: none; }
+  .miniatura[aria-pressed="true"] { border-color: var(--noite); }
+  .miniatura :global(.foto-reserva span) { display: none; }
+
+  .compra { display: flex; flex-direction: column; gap: 14px; }
+  .compra h1 { font-size: 26px; font-weight: 600; line-height: 1.15; }
+  @media (min-width: 900px) { .compra h1 { font-size: 32px; } }
+  .preco-bloco { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .preco-grande { font-size: 34px; }
+  .form-compra { display: flex; flex-direction: column; gap: 14px; margin: 0; }
+  .variacoes { border: 0; padding: 0; margin: 0; }
+  .variacoes legend { font-size: 14px; margin-bottom: 10px; padding: 0; }
+  .variacoes-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+  .variacao { position: relative; display: flex; flex-direction: column; gap: 6px; border: 1.5px solid var(--cinza-2); border-radius: var(--r-botao); padding: 6px; cursor: pointer; font-size: 12px; line-height: 1.25; text-align: center; }
+  .variacao input { position: absolute; opacity: 0; pointer-events: none; }
+  .variacao:has(input:checked) { border-color: var(--noite); box-shadow: inset 0 0 0 1px var(--noite); }
+  .variacao:has(input:focus-visible) { outline: 3px solid var(--aura); outline-offset: 2px; }
+  .variacao.esgotada { opacity: .5; cursor: not-allowed; }
+  .variacao-foto { aspect-ratio: 1 / 1; border-radius: 4px; overflow: hidden; }
+  .variacao-foto :global(.foto-reserva span) { display: none; }
+  .variacao-esgotada { font-size: 11px; color: var(--erro); font-weight: 600; }
+  .linha-compra { display: flex; gap: 10px; }
+  .botao-comprar { flex: 1; height: 48px; }
+  .estoque { font-size: 13.5px; color: var(--folha); font-weight: 600; }
+
+  .frete { border: 1px solid var(--cinza-2); border-radius: var(--r-card); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .frete-titulo { font-family: var(--fonte); font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .frete-form { display: flex; gap: 8px; margin: 0; }
+  .frete-form input { flex: 1; min-width: 0; height: 44px; border: 1.5px solid #CFCAC3; border-radius: var(--r-botao); padding: 0 12px; }
+  .frete-form .botao { height: 44px; padding: 0 18px; }
+  .frete .nota { align-self: flex-start; }
+  .garantias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--texto-suave); }
+  .garantias li { display: flex; align-items: center; gap: 10px; }
+
+  .descricao { padding-top: 40px; display: flex; flex-direction: column; gap: 16px; }
+  .descricao h2 { font-size: 24px; font-weight: 600; }
+  .ficha { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; font-size: 14px; margin: 0; max-width: 760px; border-top: 1px solid var(--cinza-2); padding-top: 14px; }
+  .ficha dt { color: var(--cinza-3); }
+  .ficha dd { margin: 0; }
+</style>
+
+<script>
+  import { precoBRL, cepValido } from '../../lib/formato';
+
+  const principal = document.querySelector<HTMLElement>('[data-foto-principal]');
+  function mostrarFoto(url: string) {
+    if (!principal || !url) return;
+    const caixa = principal.querySelector<HTMLElement>('.foto');
+    let img = caixa?.querySelector('img');
+    if (!caixa) return;
+    if (!img) { img = document.createElement('img'); img.alt = ''; img.width = 800; img.height = 800; img.referrerPolicy = 'no-referrer'; caixa.append(img); }
+    caixa.classList.remove('falhou');
+    img.src = url;
+    for (const m of document.querySelectorAll<HTMLElement>('.miniatura')) m.setAttribute('aria-pressed', String(m.dataset.foto === url));
+  }
+  document.addEventListener('click', e => {
+    const m = (e.target as HTMLElement).closest<HTMLElement>('.miniatura');
+    if (m?.dataset.foto) mostrarFoto(m.dataset.foto);
+  });
+
+  const qtd = document.querySelector<HTMLInputElement>('#qtd');
+  document.querySelector('[data-quantidade]')?.addEventListener('click', e => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-passo]');
+    if (!b || !qtd) return;
+    const max = Number(qtd.max) || 99;
+    qtd.value = String(Math.min(max, Math.max(1, (Number(qtd.value) || 1) + Number(b.dataset.passo))));
+  });
+
+  document.addEventListener('change', e => {
+    const r = e.target as HTMLInputElement;
+    if (r.name !== 'sku' || r.type !== 'radio') return;
+    const preco = document.querySelector('[data-preco]');
+    if (preco && r.dataset.preco) preco.textContent = r.dataset.preco;
+    const rotulo = document.querySelector('[data-rotulo]');
+    if (rotulo) rotulo.textContent = r.dataset.rotulo || '';
+    if (r.dataset.foto) mostrarFoto(r.dataset.foto);
+    const estoque = Number(r.dataset.estoque || 0);
+    if (qtd) { qtd.max = String(Math.min(99, estoque)); if (Number(qtd.value) > estoque) qtd.value = String(estoque); }
+    const texto = document.querySelector('[data-estoque-texto]');
+    if (texto) texto.textContent = estoque <= 5 ? `Últimas ${estoque} unidades` : 'Em estoque, pronto para envio';
+  });
+
+  const formFrete = document.querySelector<HTMLFormElement>('[data-frete-form]');
+  formFrete?.cep.addEventListener('input', (e: Event) => {
+    const el = e.target as HTMLInputElement;
+    el.value = el.value.replace(/\D/g, '').slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2');
+  });
+  const resultado = document.querySelector<HTMLElement>('[data-frete-resultado]');
+  formFrete?.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!resultado) return;
+    const cep = cepValido(new FormData(formFrete).get('cep'));
+    if (!cep) { resultado.replaceChildren(Object.assign(document.createElement('p'), { className: 'aviso aviso-erro', textContent: 'Confira o CEP: são 8 números.' })); return; }
+    const sku = (document.querySelector<HTMLInputElement>('input[name="sku"]:checked') ?? document.querySelector<HTMLInputElement>('input[type="hidden"][name="sku"]'))?.value;
+    if (!sku) return;
+    resultado.textContent = 'Calculando…';
+    try {
+      const r = await fetch('/api/frete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cep, itens: [{ sku, qtd: Number(qtd?.value) || 1 }] }) });
+      const d = await r.json();
+      resultado.replaceChildren();
+      if (!d.ok) { resultado.append(Object.assign(document.createElement('p'), { className: 'aviso aviso-erro', textContent: d.error || 'Não foi possível calcular.' })); return; }
+      const lista = document.createElement('ul');
+      lista.className = 'opcoes-frete';
+      for (const o of d.opcoes) {
+        const li = document.createElement('li');
+        const nome = document.createElement('span');
+        nome.textContent = `${o.transportadora} ${o.nome} · até ${o.prazo_dias} ${o.prazo_dias === 1 ? 'dia útil' : 'dias úteis'}`;
+        const valor = document.createElement('strong');
+        valor.textContent = precoBRL(o.preco);
+        li.append(nome, valor);
+        lista.append(li);
+      }
+      resultado.append(lista);
+    } catch {
+      resultado.textContent = 'Sem conexão. Tente de novo.';
+    }
+  });
+</script>
+
+<style is:global>
+  .opcoes-frete { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+  .opcoes-frete li { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--cinza-2); padding-top: 8px; }
+</style>

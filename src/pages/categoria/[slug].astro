@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import ListaDeProdutos from '../../components/ListaDeProdutos.astro';
+import { catalogo } from '../../lib/ryzo';
+import { envDe } from '../../lib/api';
+import { slugificar } from '../../lib/formato';
+import { ordenar } from '../../lib/listagem';
+
+const slug = String(Astro.params.slug || '');
+const todos = await catalogo(envDe(Astro));
+const daCategoria = todos.filter(p => slugificar(p.categoria) === slug);
+if (!daCategoria.length) return Astro.rewrite('/404');
+const nome = daCategoria[0].categoria;
+const ordem = Astro.url.searchParams.get('ordem') === 'menor' ? 'menor' : Astro.url.searchParams.get('ordem') === 'maior' ? 'maior' : '';
+---
+<Base titulo={nome} descricao={`${nome} na Geek Aura: ${daCategoria.length} ${daCategoria.length === 1 ? 'produto' : 'produtos'} com preço de site, Pix na hora e frete para todo o Brasil.`} atual={slug}>
+  <ListaDeProdutos titulo={nome} produtos={ordenar(daCategoria, ordem)} ordem={ordem} vazio="Nenhum produto nesta categoria agora." />
+</Base>

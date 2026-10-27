@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import ListaDeProdutos from '../components/ListaDeProdutos.astro';
+import { catalogo } from '../lib/ryzo';
+import { envDe } from '../lib/api';
+import { FAIXAS } from '../lib/loja';
+import { buscar, naFaixa, ordenar } from '../lib/listagem';
+
+const q = (Astro.url.searchParams.get('q') || '').trim().slice(0, 80);
+const faixaSlug = Astro.url.searchParams.get('faixa') || '';
+const faixa = FAIXAS.find(f => f.slug === faixaSlug);
+const ordemBruta = Astro.url.searchParams.get('ordem');
+const ordem = ordemBruta === 'menor' || ordemBruta === 'maior' ? ordemBruta : '';
+const todos = await catalogo(envDe(Astro));
+let achados = q ? buscar(todos, q) : faixa ? todos : [];
+if (faixa) achados = naFaixa(achados, faixa.slug);
+const titulo = q ? `Busca: ${q}` : faixa ? faixa.nome : 'Buscar';
+const subtitulo = q || faixa ? undefined : 'Digite o que procura na caixa de busca.';
+---
+<Base titulo={titulo} descricao="Busque blocos de montar, jogos de cartas e colecionáveis na Geek Aura." noindex busca={q}>
+  <ListaDeProdutos titulo={titulo} subtitulo={subtitulo} produtos={ordenar(achados, ordem)} ordem={ordem}
+    vazio={q ? `Nada encontrado para "${q}". Tente outra palavra, como "blocos" ou "cartas".` : 'Nenhum produto nesta faixa agora.'} />
+</Base>
