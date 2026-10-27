@@ -34,7 +34,7 @@ const BRUTOS: Bruto[] = [
     categoria: 'Blocos de montar',
     peso_g: 372, medidas: [33, 12, 6],
     descricao: `Descubra o Universo dos Bonecos Ninja Dragão!
-Prepare-se para aventuras épicas com nossos incríveis bonecos estilo Lego. Eles trazem toda a ação de guerreiros ninjas, motoqueiros velozes e domadores de dragões em um único conjunto cheio de diversão e criatividade.
+Prepare-se para aventuras épicas com nossos incríveis bonecos de montar. Eles trazem toda a ação de guerreiros ninjas, motoqueiros velozes e domadores de dragões em um único conjunto cheio de diversão e criatividade.
 
 Crie, Monte e Explore:
 Essas mini figuras oferecem detalhes impressionantes e peças compatíveis com outras marcas de blocos de montar. Você pode construir cenários, criar batalhas épicas e inventar histórias incríveis. São perfeitos para crianças que amam desafios e colecionadores apaixonados por ação e fantasia.
