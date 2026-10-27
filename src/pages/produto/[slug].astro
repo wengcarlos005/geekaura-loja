@@ -174,8 +174,8 @@ const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
   .variacao-foto { aspect-ratio: 1 / 1; border-radius: 4px; overflow: hidden; }
   .variacao-foto :global(.foto-reserva span) { display: none; }
   .variacao-esgotada { font-size: 11px; color: var(--erro); font-weight: 600; }
-  .linha-compra { display: flex; gap: 10px; }
-  .botao-comprar { flex: 1; height: 48px; }
+  .linha-compra { display: flex; flex-wrap: wrap; gap: 10px; }
+  .botao-comprar { flex: 1 1 220px; height: 48px; white-space: nowrap; }
   .estoque { font-size: 13.5px; color: var(--folha); font-weight: 600; }
 
   .frete { border: 1px solid var(--cinza-2); border-radius: var(--r-card); padding: 16px; display: flex; flex-direction: column; gap: 10px; }

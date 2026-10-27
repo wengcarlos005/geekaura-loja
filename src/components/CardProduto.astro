@@ -28,7 +28,7 @@ const url = `/produto/${p.slug}`;
         <input type="hidden" name="acao" value="adicionar" />
         <input type="hidden" name="sku" value={unica.sku} />
         <input type="hidden" name="qtd" value="1" />
-        <button class="botao botao-escuro" type="submit" aria-label={`Adicionar ${p.titulo} ao carrinho`}>Adicionar<span class="so-largo">&nbsp;ao carrinho</span></button>
+        <button class="botao botao-escuro" type="submit" aria-label={`Adicionar ${p.titulo} ao carrinho`}><span>Adicionar<span class="so-largo"> ao carrinho</span></span></button>
       </form>
     ) : (
       <a class="botao botao-escuro" href={url} aria-disabled={p.disponivel ? undefined : 'true'}>{p.disponivel ? 'Escolher modelo' : 'Ver produto'}</a>
