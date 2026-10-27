@@ -1,0 +1,37 @@
+---
+import type { Categoria } from '../lib/loja';
+import { LOJA } from '../lib/loja';
+interface Props { categorias: Categoria[]; }
+const { categorias } = Astro.props;
+---
+<footer class="rodape">
+  <div class="recipiente rodape-colunas">
+    <div>
+      <span class="marca-nome"><span class="geek">GEEK</span> <span class="aura">AURA</span></span>
+      <p>Blocos de montar, jogos de cartas e colecionáveis.</p>
+      <p>Atendimento: <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a></p>
+      <p>WhatsApp: <a href={LOJA.whatsappLink} rel="noopener" target="_blank">{LOJA.whatsapp}</a></p>
+    </div>
+    <nav aria-label="Comprar">
+      <p class="rodape-titulo">Comprar</p>
+      {categorias.map(c => <a href={`/categoria/${c.slug}`}>{c.nome}</a>)}
+    </nav>
+    <nav aria-label="Ajuda">
+      <p class="rodape-titulo">Ajuda</p>
+      <a href="/pedido">Meu pedido</a>
+      <a href="/frete-e-prazos">Frete e prazos</a>
+      <a href="/trocas-e-devolucoes">Trocas e devoluções</a>
+      <a href="/contato">Fale com a gente</a>
+    </nav>
+    <nav aria-label="Institucional">
+      <p class="rodape-titulo">Institucional</p>
+      <a href="/sobre">Sobre a Geek Aura</a>
+      <a href="/privacidade">Política de privacidade</a>
+      <a href="/termos">Termos de uso</a>
+    </nav>
+  </div>
+  <div class="recipiente rodape-legal">
+    <span>{LOJA.razaoSocial} · CNPJ {LOJA.cnpj} · {LOJA.endereco}</span>
+    <span>Pagamentos processados pelo Mercado Pago</span>
+  </div>
+</footer>

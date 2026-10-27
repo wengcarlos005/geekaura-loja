@@ -1,0 +1,10 @@
+---
+import Icone from './Icone.astro';
+interface Props { link?: boolean; }
+const { link = true } = Astro.props;
+const Tag = link ? 'a' : 'span';
+---
+<Tag href={link ? '/' : undefined} class="marca" aria-label={link ? 'Geek Aura, página inicial' : undefined}>
+  <Icone tamanho={40} />
+  <span class="marca-nome" aria-hidden={link ? 'true' : undefined}><span class="geek">GEEK</span> <span class="aura">AURA</span></span>
+</Tag>
