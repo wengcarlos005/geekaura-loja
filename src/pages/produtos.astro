@@ -8,6 +8,7 @@ import { catalogo, type ProdutoResumo } from '../lib/ryzo';
 import { envDe } from '../lib/api';
 import { categoriasDoCatalogo, FAIXAS } from '../lib/loja';
 import { naFaixa, ordenar } from '../lib/listagem';
+import { escolherDestaques, sementeDoPeriodo } from '../lib/vitrine';
 import { slugificar } from '../lib/formato';
 
 const sp = Astro.url.searchParams;
@@ -29,7 +30,15 @@ const filtrar = (o: { cat?: string; faixa?: string; estoque?: boolean }) => {
   if (o.estoque) r = r.filter(p => p.disponivel);
   return r;
 };
-const achados = ordenar(filtrar({ cat, faixa, estoque: soEstoque }), ordem);
+const filtrados = filtrar({ cat, faixa, estoque: soEstoque });
+// Na ordem "Destaques", a lista intercala categorias e muda uma vez por dia; produto sem foto e
+// esgotado vão para o fim. Nas ordens por preço, nada é sorteado.
+const misturados = ordem ? filtrados : (() => {
+  const primeiro = escolherDestaques(filtrados, filtrados.length, sementeDoPeriodo(Date.now(), 24));
+  const ja = new Set(primeiro.map(p => p.slug));
+  return [...primeiro, ...filtrados.filter(p => !ja.has(p.slug))];
+})();
+const achados = ordenar(misturados, ordem);
 
 /** Link com um filtro trocado e os outros mantidos. */
 const link = (muda: Record<string, string | null>) => {

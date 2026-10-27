@@ -9,6 +9,7 @@ import { catalogo, type ProdutoResumo } from '../lib/ryzo';
 import { envDe } from '../lib/api';
 import { categoriasDoCatalogo, FAIXAS, LOJA } from '../lib/loja';
 import { naFaixa } from '../lib/listagem';
+import { escolherDestaques, sementeDoPeriodo } from '../lib/vitrine';
 import { precoBRL, slugificar } from '../lib/formato';
 
 const env = envDe(Astro);
@@ -48,8 +49,11 @@ const faixas = FAIXAS.map(f => {
   return { ...f, qtd: lista.length, fotos: lista.map(p => p.fotos[0]).filter(Boolean).slice(0, 3) as string[] };
 }).filter(f => f.qtd > 0);
 
-const destaques = disponiveis.slice(0, 12);
-const baratos = naFaixa(disponiveis, 'ate-30').concat(naFaixa(disponiveis, '30-a-60')).slice(0, 12);
+// Destaques giram a cada 6 horas e intercalam categorias; a fileira de baratos não repete nenhum deles.
+const semente = sementeDoPeriodo();
+const destaques = escolherDestaques(disponiveis, 12, semente);
+const jaMostrados = new Set(destaques.map(p => p.slug));
+const baratos = escolherDestaques(disponiveis.filter(p => p.preco_a_partir < 60), 12, semente + 1, jaMostrados);
 
 // Coleções: produtos com muitos modelos rendem uma vitrine de fotos.
 const colecoes = disponiveis
@@ -146,12 +150,15 @@ const jsonLd = {
   <Beneficios />
 
   {cats.length > 1 && (
-    <section class="recipiente secao" aria-labelledby="titulo-cats">
+    <section class="recipiente secao" aria-labelledby="titulo-cats" data-trilho-secao>
       <div class="trilho-cabeca">
         <div data-revelar="esquerda"><p class="sobrelinha">Explore</p><h2 id="titulo-cats">Compre por categoria</h2></div>
         <a class="ver-todos" href="/produtos">Ver tudo <Simbolo nome="direita" tamanho={18} /></a>
       </div>
-      <div class="cats">
+      <div class="trilho-moldura">
+      {cats.length > 5 && <button type="button" class="seta seta-esq" data-seta="-1" aria-label="Categorias anteriores" disabled><Simbolo nome="esquerda" tamanho={22} /></button>}
+      {cats.length > 5 && <button type="button" class="seta seta-dir" data-seta="1" aria-label="Mais categorias"><Simbolo nome="direita" tamanho={22} /></button>}
+      <div class="cats" data-trilho>
         {cats.map(c => (
           <a class:list={['cat', `cat-${c.fundo}`]} href={`/categoria/${c.slug}`} data-revelar>
             <span class="cat-texto"><span class="cat-nome">{c.nome}</span><span class="cat-qtd">{c.qtd} {c.qtd === 1 ? 'produto' : 'produtos'}</span></span>
@@ -159,6 +166,7 @@ const jsonLd = {
             <span class="cat-seta" aria-hidden="true"><Simbolo nome="direita" tamanho={18} /></span>
           </a>
         ))}
+      </div>
       </div>
     </section>
   )}
@@ -320,8 +328,11 @@ const jsonLd = {
   .slide-aura:hover .carta-2 { transform: translateY(-22px); }
 
   /* ---------- Categorias ---------- */
-  .cats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  @media (min-width: 900px) { .cats { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; } }
+  .cats { display: grid; grid-auto-flow: column; grid-auto-columns: 42%; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 8px; scroll-padding: 0 16px; }
+  .cats::-webkit-scrollbar { display: none; }
+  .cats > * { scroll-snap-align: start; }
+  @media (min-width: 700px) { .cats { grid-auto-columns: 28%; } }
+  @media (min-width: 1000px) { .cats { grid-auto-columns: calc((100% - 64px) / 5); gap: 16px; margin: 0; padding: 4px 0 8px; scroll-padding: 0; } }
   .cat { position: relative; overflow: hidden; border-radius: 14px; min-height: 140px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; isolation: isolate; }
   @media (min-width: 900px) { .cat { min-height: 220px; padding: 20px; } }
   .cat-creme { background: var(--creme); }
