@@ -75,7 +75,7 @@ const fmtData = (iso: string | null) => iso ? new Date(iso).toLocaleString('pt-B
           </div>
         )}
         {status === 'processando' && <div class="aviso aviso-info bloco"><strong>Estamos confirmando o seu pagamento.</strong><p>Esta página atualiza sozinha.</p></div>}
-        {status === 'sem_estoque' && <div class="aviso aviso-erro bloco"><strong>Um item acabou antes da confirmação do pagamento.</strong><p>O valor será devolvido pelo Mercado Pago. Fale com a gente pelo <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp</a> se preferir trocar por outro produto.</p></div>}
+        {status === 'sem_estoque' && <div class="aviso aviso-erro bloco"><strong>Um item acabou antes da confirmação do pagamento.</strong><p>O valor será devolvido pelo Mercado Pago. Se preferir trocar por outro produto, escreva para <a href={`mailto:${LOJA.email}?subject=Pedido ${codigo}`}>{LOJA.email}</a>.</p></div>}
         {status === 'cancelado' && <div class="aviso aviso-info bloco"><strong>Este pedido foi cancelado.</strong><p>Se foi engano, é só fazer um pedido novo. Dúvidas: {LOJA.email}.</p></div>}
 
         {pix && (
@@ -186,7 +186,7 @@ const fmtData = (iso: string | null) => iso ? new Date(iso).toLocaleString('pt-B
         <div class="linha-total"><span>Produtos</span><span>{precoBRL(subtotal)}</span></div>
         <div class="linha-total"><span>Frete</span><span>{precoBRL(pedido.frete)}</span></div>
         <div class="linha-total grande"><span>Total</span><span>{precoBRL(pedido.total)}</span></div>
-        <p class="nota">Guarde o código {codigo} para acompanhar o pedido. Dúvidas: <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp {LOJA.whatsapp}</a>.</p>
+        <p class="nota">Guarde o código {codigo} para acompanhar o pedido. Dúvidas: <a href="/ajuda">perguntas frequentes</a> ou <a href={`mailto:${LOJA.email}?subject=Pedido ${codigo}`}>{LOJA.email}</a>.</p>
       </aside>
     </div>
   </section>

@@ -2,28 +2,24 @@
 import PaginaLegal from '../components/PaginaLegal.astro';
 import { LOJA } from '../lib/loja';
 ---
-<PaginaLegal titulo="Fale com a gente" descricao="Atendimento da Geek Aura por WhatsApp e e-mail.">
-  <p>Respondemos em dias úteis. Para agilizar, tenha em mãos o código do pedido (começa com SITE-).</p>
-  <div class="canais">
-    <a class="canal" href={LOJA.whatsappLink} rel="noopener" target="_blank">
-      <strong>WhatsApp</strong><span>{LOJA.whatsapp}</span>
-    </a>
-    <a class="canal" href={`mailto:${LOJA.email}`}>
-      <strong>E-mail</strong><span>{LOJA.email}</span>
-    </a>
-  </div>
-  <h2>Antes de escrever</h2>
+<PaginaLegal titulo="Fale com a gente" descricao="Atendimento da Geek Aura por e-mail, com as respostas das dúvidas mais comuns.">
+  <h2>Resolva na hora</h2>
   <ul>
-    <li>Para ver o andamento do pedido, use <a href="/pedido">Acompanhar pedido</a>.</li>
-    <li>Prazos e valores de entrega estão em <a href="/frete-e-prazos">Frete e prazos</a>.</li>
-    <li>Para trocar ou devolver, veja <a href="/trocas-e-devolucoes">Trocas e devoluções</a>.</li>
+    <li>Andamento do pedido e rastreio: <a href="/conta">Minha conta</a> ou <a href="/pedido">Acompanhar pedido</a>.</li>
+    <li>Entrega, pagamento, nota fiscal e trocas: <a href="/ajuda">Dúvidas frequentes</a>.</li>
+    <li>Prazos e valores de envio: <a href="/frete-e-prazos">Frete e prazos</a>.</li>
+    <li>Troca ou devolução: <a href="/trocas-e-devolucoes">Trocas e devoluções</a>.</li>
   </ul>
+  <h2>Ainda precisa falar com a gente?</h2>
+  <p>Respondemos em dias úteis. Mande o código do pedido (começa com SITE-) e, se for defeito ou peça faltando, uma foto.</p>
+  <a class="canal" href={`mailto:${LOJA.email}`}>
+    <strong>E-mail</strong><span>{LOJA.email}</span>
+  </a>
+  <p class="nota">Também atendemos pelo WhatsApp {LOJA.whatsapp}.</p>
   <p class="nota">{LOJA.razaoSocial} · CNPJ {LOJA.cnpj} · {LOJA.endereco}</p>
 </PaginaLegal>
 <style>
-  .canais { display: grid; gap: 12px; margin: 20px 0 8px; }
-  @media (min-width: 600px) { .canais { grid-template-columns: 1fr 1fr; } }
-  .canal { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--cinza-2); border-radius: var(--r-card); padding: 18px; text-decoration: none; }
+  .canal { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--cinza-2); border-radius: var(--r-card); padding: 18px; text-decoration: none; margin: 8px 0 14px; max-width: 420px; }
   .canal:hover { border-color: var(--noite); }
   .canal strong { font-family: var(--fonte-titulo); font-size: 20px; }
   .canal span { word-break: break-all; }

@@ -9,7 +9,7 @@ const { categorias } = Astro.props;
 const grupos = [
   { titulo: 'Comprar', links: [{ href: '/produtos', nome: 'Todos os produtos' }, ...categorias.map(c => ({ href: `/categoria/${c.slug}`, nome: c.nome }))] },
   { titulo: 'Ajuda', links: [
-    { href: '/conta', nome: 'Minha conta' }, { href: '/pedido', nome: 'Rastrear pedido' }, { href: '/favoritos', nome: 'Favoritos' },
+    { href: '/conta', nome: 'Minha conta' }, { href: '/pedido', nome: 'Rastrear pedido' }, { href: '/ajuda', nome: 'Dúvidas frequentes' },
     { href: '/frete-e-prazos', nome: 'Frete e prazos' }, { href: '/trocas-e-devolucoes', nome: 'Trocas e devoluções' }, { href: '/contato', nome: 'Fale com a gente' },
   ] },
   { titulo: 'Institucional', links: [
@@ -23,7 +23,7 @@ const grupos = [
       <span class="marca-nome"><span class="geek">GEEK</span> <span class="aura">AURA</span></span>
       <p>Blocos de montar, jogos de cartas e colecionáveis.</p>
       <div class="rodape-contato">
-        <a class="contato-botao contato-zap" href={LOJA.whatsappLink} rel="noopener" target="_blank"><Simbolo nome="zap" tamanho={18} /><span>WhatsApp<small>{LOJA.whatsapp}</small></span></a>
+        <a class="contato-botao" href="/ajuda"><Simbolo nome="busca" tamanho={18} /><span>Dúvidas frequentes<small>Entrega, pagamento e trocas</small></span></a>
         <a class="contato-botao" href={`mailto:${LOJA.email}`}><Simbolo nome="email" tamanho={18} /><span>E-mail<small>{LOJA.email}</small></span></a>
       </div>
     </div>

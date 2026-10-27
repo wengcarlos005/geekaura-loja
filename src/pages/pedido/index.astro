@@ -21,7 +21,7 @@ const errado = bruto !== null;
       {errado && <p class="aviso aviso-erro" id="codigo-erro">Esse código não parece certo. Confira no e-mail: SITE- seguido de letras e números.</p>}
       <button class="botao botao-escuro botao-largo" type="submit">Ver pedido</button>
     </form>
-    <p class="nota">Não achou o código? Fale com a gente pelo <a href={LOJA.whatsappLink} rel="noopener" target="_blank">WhatsApp {LOJA.whatsapp}</a> ou pelo e-mail <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a>.</p>
+    <p class="nota">Não achou o código? Se você comprou com a sua conta, ele está em <a href="/conta">Minha conta</a>. Se não, procure no e-mail de confirmação ou escreva para <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a>.</p>
   </section>
 </Base>
 <style>
