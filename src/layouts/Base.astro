@@ -38,7 +38,7 @@ try { qtdCarrinho = (await lerCarrinho(Astro)).reduce((s, i) => s + i.qtd, 0); }
 const nomeCliente = (await lerSessao(Astro))?.n ?? null;
 const freteGratisAcima = (await configLoja(env).catch(() => ({ frete_gratis_acima: null }))).frete_gratis_acima;
 
-const tituloCompleto = titulo === LOJA.nome ? `${LOJA.nome} · Blocos de montar, jogos de cartas e colecionáveis` : `${titulo} · ${LOJA.nome}`;
+const tituloCompleto = titulo === LOJA.nome ? `${LOJA.nome} · ${LOJA.bordao} | Blocos de montar e colecionáveis` : `${titulo} · ${LOJA.nome}`;
 const canonico = new URL(Astro.url.pathname, LOJA.url).href;
 const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
 ---
