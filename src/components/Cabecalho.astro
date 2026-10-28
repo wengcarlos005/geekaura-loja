@@ -5,21 +5,29 @@ import type { Categoria } from '../lib/loja';
 import { precoBRL } from '../lib/formato';
 interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; nomeCliente?: string | null; freteGratisAcima?: number | null; }
 const { categorias, atual, qtdCarrinho, busca = '', nomeCliente, freteGratisAcima } = Astro.props;
+// Com frete grátis, a faixa laranja também leva os links de ajuda: duas faixas empilhadas
+// empurravam o banner para baixo da primeira tela no computador.
 const valorFrete = freteGratisAcima ? precoBRL(freteGratisAcima).replace(',00', '') : '';
 ---
-{freteGratisAcima && (
-  <a class="faixa-frete" href="/produtos">
-    <Simbolo nome="caminhao" tamanho={20} />
-    <span><strong>Frete grátis</strong> em compras acima de <strong>{valorFrete}</strong></span>
-    <span class="ff-cta so-largo">Aproveitar <Simbolo nome="direita" tamanho={16} /></span>
-  </a>
-)}
-<div class="faixa-util">
-  <div class="recipiente">
-    <span class="so-largo">Enviamos para todo o Brasil · postagem em até 2 dias úteis</span>
-    <nav aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
+{freteGratisAcima ? (
+  <div class="faixa-frete">
+    <div class="recipiente ff-linha">
+      <a class="ff-msg" href="/produtos">
+        <Simbolo nome="caminhao" tamanho={20} />
+        <span><strong>Frete grátis</strong> em compras acima de <strong>{valorFrete}</strong></span>
+        <span class="ff-cta so-largo">Aproveitar <Simbolo nome="direita" tamanho={16} /></span>
+      </a>
+      <nav class="ff-ajuda" aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
+    </div>
   </div>
-</div>
+) : (
+  <div class="faixa-util">
+    <div class="recipiente">
+      <span class="so-largo">Enviamos para todo o Brasil · postagem em até 2 dias úteis</span>
+      <nav aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
+    </div>
+  </div>
+)}
 <header class="topo">
   <div class="recipiente">
     <div class="topo-linha">
