@@ -28,7 +28,11 @@ const fotosDe = (p: ProdutoResumo | undefined, n: number) =>
 
 // Slides do topo: cada um só entra se o catálogo tiver o produto que ele mostra.
 const navio = achar(p => p.slug.startsWith('navio')) ?? daCategoria('blocos-de-montar')[0];
-const dino = achar(p => /dinossauro|dino/i.test(p.titulo));
+// Card do mascote: produto de foto única e nítida. Os "kits" vêm com montagem de várias caixas, que
+// encolhida no card vira borrão; por isso a preferência e a exclusão.
+const dino = achar(p => /dinorex|rob[ôo] dinossauro|dinowars/i.test(p.titulo) && !/\bkits?\b/i.test(p.titulo))
+  ?? achar(p => /dinossauro|dino/i.test(p.titulo) && !/\bkits?\b/i.test(p.titulo))
+  ?? daCategoria('blocos-de-montar').find(p => p !== navio && !/\bkits?\b|ninja/i.test(p.titulo));
 const ninja = achar(p => /ninja/i.test(p.titulo));
 const natal = daCategoria('natal')[0];
 const cartas = daCategoria('jogos-de-cartas');
@@ -343,7 +347,7 @@ const jsonLd = {
   .s-titulo { font-weight: 700; font-size: 27px; line-height: 1.04; letter-spacing: -.3px; max-width: 560px; }
   @media (min-width: 600px) { .s-titulo { font-size: 42px; } }
   @media (min-width: 1200px) { .s-titulo { font-size: 46px; } }
-  .ponto { color: var(--branco); }
+  .ponto { color: inherit; }
   /* Bordão: pílula escura numa linha só, com o brilho em laranja claro. */
   .s-bordao { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-family: var(--fonte-titulo); font-weight: 600; font-size: 15px; letter-spacing: .2px; color: var(--branco); background: rgba(17, 16, 20, .9); border-radius: 999px; padding: 7px 16px 7px 12px; box-shadow: 0 10px 22px -12px rgba(17, 16, 20, .6); }
   .s-bordao .brilho { width: 16px; height: 16px; fill: #FFC37A; flex-shrink: 0; }
