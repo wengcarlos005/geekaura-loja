@@ -7,8 +7,9 @@
   "assets": { "binding": "ASSETS", "directory": "./dist" },
   "observability": { "enabled": true },
   "vars": {
-    // Ambiente de teste do Ryzo. Na produção: https://ryzoseller.com.br
-    "RYZO_URL": "https://ryzo-staging.wengcarlos005.workers.dev"
+    // Ryzo de produção. Para testar contra o staging: https://ryzo-staging.wengcarlos005.workers.dev
+    // (aqui, não no painel: a publicação pelo GitHub sobrescreve variável que só existe no painel).
+    "RYZO_URL": "https://ryzoseller.com.br"
   }
   // Segredos (nunca aqui): wrangler secret put RYZO_VITRINE_KEY / CART_SECRET
 }
