@@ -186,6 +186,20 @@ const jsonLd = {
     </section>
   )}
 
+  {freteGratisAcima && (
+    <section class="recipiente secao">
+      <a class="promo-frete" href="/produtos" data-revelar="zoom">
+        <span class="pf-icone" aria-hidden="true"><Simbolo nome="caminhao" tamanho={44} /></span>
+        <span class="pf-texto">
+          <span class="pf-sobre">Para todo o Brasil</span>
+          <span class="pf-titulo">Frete grátis acima de {precoBRL(freteGratisAcima).replace(',00', '')}</span>
+          <span class="pf-sub">Na opção de entrega mais econômica. O carrinho mostra quanto falta.</span>
+        </span>
+        <span class="botao botao-primario pf-botao">Montar meu pedido</span>
+      </a>
+    </section>
+  )}
+
   {falhou ? (
     <section class="recipiente secao"><p class="aviso aviso-info">Não conseguimos carregar os produtos agora. Atualize a página em instantes.</p></section>
   ) : (
@@ -403,7 +417,9 @@ const jsonLd = {
   }
 
   /* ---------- Categorias ---------- */
-  .cats { display: grid; grid-auto-flow: column; grid-auto-columns: 42%; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 8px; scroll-padding: 0 16px; }
+  /* overflow-y fixo: com só o x em auto o navegador libera rolagem vertical dentro da fileira, e no
+     celular ela subia e descia com o dedo. */
+  .cats { display: grid; grid-auto-flow: column; grid-auto-columns: 42%; gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 8px; scroll-padding: 0 16px; }
   .cats::-webkit-scrollbar { display: none; }
   .cats > * { scroll-snap-align: start; }
   @media (min-width: 700px) { .cats { grid-auto-columns: 28%; } }
@@ -441,6 +457,25 @@ const jsonLd = {
     .cat-aura .cat-foto { border-color: #2B1D5C; }
     .cat:hover .cat-foto { transform: scale(1.05); }
   }
+
+  /* ---------- Banner do frete grátis ---------- */
+  .promo-frete { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 16px 20px; background: var(--noite); color: var(--branco); border-radius: 16px; padding: 22px; text-decoration: none; }
+  .promo-frete::after { content: ''; position: absolute; right: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 138, 31, .35), rgba(255, 138, 31, 0) 70%); }
+  .promo-frete:hover { color: var(--branco); }
+  .pf-icone { width: 72px; height: 72px; border-radius: 50%; background: var(--abobora); color: var(--noite); display: inline-flex; align-items: center; justify-content: center; }
+  .pf-texto { display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 1; }
+  .pf-sobre { font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--abobora); }
+  .pf-titulo { font-family: var(--fonte-titulo); font-weight: 700; font-size: 26px; line-height: 1.05; }
+  .pf-sub { font-size: 14.5px; color: #C9C3BA; }
+  .pf-botao { grid-column: 1 / -1; position: relative; z-index: 1; }
+  @media (min-width: 900px) {
+    .promo-frete { grid-template-columns: auto 1fr auto; padding: 28px 36px; gap: 28px; }
+    .pf-icone { width: 92px; height: 92px; }
+    .pf-titulo { font-size: 36px; }
+    .pf-sub { font-size: 16px; }
+    .pf-botao { grid-column: auto; }
+  }
+  .promo-frete:hover .pf-botao { background: #F07A0C; }
 
   /* ---------- Faixas ---------- */
   .faixas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

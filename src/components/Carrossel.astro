@@ -21,7 +21,7 @@ const { rotulo, intervalo = 7000 } = Astro.props;
 
 <style is:global>
   .carrossel { position: relative; }
-  .carrossel-trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 14px; }
+  .carrossel-trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 14px; }
   .carrossel-trilho::-webkit-scrollbar { display: none; }
   .slide { scroll-snap-align: start; scroll-snap-stop: always; position: relative; overflow: hidden; }
   .carrossel-controles { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .92); backdrop-filter: blur(6px); border-radius: 999px; padding: 4px; box-shadow: 0 8px 24px -10px rgba(17, 16, 20, .35); z-index: 5; }

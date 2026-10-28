@@ -34,7 +34,7 @@ const iniciais = nome.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]!.to
   .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--abobora); color: var(--noite); font-family: var(--fonte-titulo); font-weight: 700; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .conta-quem-texto { display: flex; flex-direction: column; min-width: 0; }
   .conta-quem-texto .nota { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .conta-menu nav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
+  .conta-menu nav { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
   @media (min-width: 900px) { .conta-menu nav { flex-direction: column; gap: 2px; margin: 0; padding: 0; overflow: visible; } }
   .conta-menu nav a, .conta-menu nav button { flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-botao); border: 1px solid var(--cinza-2); font-size: 14.5px; font-weight: 500; text-decoration: none; background: var(--branco); cursor: pointer; color: var(--noite); white-space: nowrap; transition: background-color .15s; }
   @media (min-width: 900px) { .conta-menu nav a, .conta-menu nav button { border: 0; width: 100%; } }
