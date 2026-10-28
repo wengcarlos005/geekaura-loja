@@ -172,7 +172,7 @@ try {
   .galeria { display: flex; flex-direction: column; gap: 10px; }
   .galeria-principal { aspect-ratio: 1 / 1; border-radius: var(--r-card); overflow: hidden; }
   .galeria-principal :global(.foto-reserva) { font-size: 15px; }
-  .miniaturas { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .miniaturas { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
   .miniatura { flex: 0 0 64px; width: 64px; height: 64px; padding: 0; border: 1.5px solid var(--cinza-2); border-radius: var(--r-botao); overflow: hidden; cursor: pointer; background: none; }
   .miniatura[aria-pressed="true"] { border-color: var(--noite); }
   .miniatura :global(.foto-reserva span) { display: none; }

@@ -85,7 +85,7 @@ p { margin: 0; }
 .conta .rotulo { display: none; }
 .contador { min-width: 19px; height: 19px; border-radius: 10px; background: var(--abobora); color: var(--noite); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; position: absolute; top: 2px; right: 0; }
 .contador[data-zero] { display: none; }
-.categorias { display: flex; gap: 8px; overflow-x: auto; margin: 12px -16px 0; padding: 0 16px 12px; scrollbar-width: none; }
+.categorias { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; margin: 12px -16px 0; padding: 0 16px 12px; scrollbar-width: none; }
 .categorias::-webkit-scrollbar { display: none; }
 .categorias a { flex-shrink: 0; border: 1px solid #D9D5CF; border-radius: var(--r-botao); padding: 8px 12px; font-size: 13.5px; font-weight: 500; text-decoration: none; }
 .categorias a[aria-current="page"] { background: var(--noite); border-color: var(--noite); color: var(--branco); }
@@ -328,7 +328,7 @@ html.sem-rolagem { overflow: hidden; }
 .seta:hover:not(:disabled) { background: var(--noite); color: var(--branco); transform: scale(1.06); }
 .seta:disabled { opacity: 0; pointer-events: none; }
 @media (min-width: 900px) { .seta { display: inline-flex; } }
-.trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 46%; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 24px; scroll-padding: 0 16px; }
+.trilho { display: grid; grid-auto-flow: column; grid-auto-columns: 46%; gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -16px; padding: 4px 16px 24px; scroll-padding: 0 16px; }
 .trilho::-webkit-scrollbar { display: none; }
 .trilho > * { scroll-snap-align: start; }
 @media (min-width: 700px) { .trilho { grid-auto-columns: 30%; gap: 16px; } }
@@ -421,3 +421,11 @@ html.sem-rolagem { overflow: hidden; }
 .frete-gratis.ganhou .fg-trilho span { background: var(--folha); }
 .frete-gratis[hidden] { display: none; }
 .preco-riscado { text-decoration: line-through; color: var(--cinza-3); font-weight: 400; margin-right: 6px; font-size: .9em; }
+
+/* ---------- Faixa do frete grátis (todas as páginas, celular incluído) ---------- */
+.faixa-frete { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--abobora); color: var(--noite); text-decoration: none; padding: 9px 16px; font-size: 14.5px; line-height: 1.3; text-align: center; }
+.faixa-frete:hover { color: var(--noite); background: #F98418; }
+.faixa-frete > svg { flex-shrink: 0; }
+.faixa-frete strong { font-weight: 800; }
+.ff-cta { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; }
+@media (max-width: 899px) { .faixa-frete { font-size: 13.5px; padding: 8px 12px; } .ff-cta { display: none; } }

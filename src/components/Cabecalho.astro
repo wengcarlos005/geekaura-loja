@@ -5,10 +5,18 @@ import type { Categoria } from '../lib/loja';
 import { precoBRL } from '../lib/formato';
 interface Props { categorias: Categoria[]; atual?: string; qtdCarrinho: number; busca?: string; nomeCliente?: string | null; freteGratisAcima?: number | null; }
 const { categorias, atual, qtdCarrinho, busca = '', nomeCliente, freteGratisAcima } = Astro.props;
+const valorFrete = freteGratisAcima ? precoBRL(freteGratisAcima).replace(',00', '') : '';
 ---
+{freteGratisAcima && (
+  <a class="faixa-frete" href="/produtos">
+    <Simbolo nome="caminhao" tamanho={20} />
+    <span><strong>Frete grátis</strong> em compras acima de <strong>{valorFrete}</strong></span>
+    <span class="ff-cta so-largo">Aproveitar <Simbolo nome="direita" tamanho={16} /></span>
+  </a>
+)}
 <div class="faixa-util">
   <div class="recipiente">
-    <span class="so-largo">{freteGratisAcima ? `Frete grátis acima de ${precoBRL(freteGratisAcima).replace(',00', '')}` : 'Enviamos para todo o Brasil'} · postagem em até 2 dias úteis</span>
+    <span class="so-largo">Enviamos para todo o Brasil · postagem em até 2 dias úteis</span>
     <nav aria-label="Ajuda rápida"><a href="/pedido">Rastrear pedido</a><a href="/contato">Atendimento</a></nav>
   </div>
 </div>

@@ -32,7 +32,7 @@ const itens = freteGratisAcima ? [lista[1], lista[0], lista[2], lista[3]] : list
   /* No celular vira uma fileira que rola de lado, sem caixa: quatro blocos espremidos liam mal. */
   @media (max-width: 899px) {
     .beneficios { margin-top: 14px; }
-    .beneficios-grade { display: flex; overflow-x: auto; scrollbar-width: none; border: 0; border-radius: 0; gap: 10px; padding: 0 16px; margin: 0 -16px; }
+    .beneficios-grade { display: flex; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; border: 0; border-radius: 0; gap: 10px; padding: 0 16px; margin: 0 -16px; }
     .beneficios-grade::-webkit-scrollbar { display: none; }
     .beneficio { flex: 0 0 auto; background: var(--cinza-1); border-radius: 999px; padding: 6px 14px 6px 6px; gap: 8px; }
     .beneficio :global(svg) { width: 32px !important; height: 32px !important; padding: 7px !important; background: var(--branco) !important; }
