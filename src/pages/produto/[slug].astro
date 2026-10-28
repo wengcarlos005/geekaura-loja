@@ -8,37 +8,51 @@ import { envDe } from '../../lib/api';
 import { precoBRL, slugificar } from '../../lib/formato';
 import { LOJA } from '../../lib/loja';
 import { resumo } from '../../lib/seo';
+import { itemGa } from '../../lib/analytics';
+import { trilhaJsonLd } from '../../lib/seoCategorias';
 
 const slug = String(Astro.params.slug || '');
 const p = await buscarProduto(envDe(Astro), slug);
 if (!p) return Astro.rewrite('/404');
 
 const comEstoque = p.variacoes.filter(v => v.estoque > 0);
-const escolhida = comEstoque[0] ?? p.variacoes[0];
+// ?modelo=SKU abre com aquele modelo escolhido: é o link de cada variação no feed do Google Shopping,
+// que precisa cair na página mostrando o preço daquele modelo.
+const pedido = Astro.url.searchParams.get('modelo');
+const escolhida = p.variacoes.find(v => v.sku === pedido && v.estoque > 0) ?? comEstoque[0] ?? p.variacoes[0];
 const temEscolha = p.variacoes.length > 1;
 const fotoInicial = escolhida?.foto ?? p.fotos[0] ?? null;
 const miniaturas = [...new Set([...p.fotos, ...p.variacoes.map(v => v.foto)].filter(Boolean) as string[])].slice(0, 8);
-const precos = p.variacoes.map(v => v.preco);
 const categoriaSlug = slugificar(p.categoria);
 const url = `${LOJA.url}/produto/${p.slug}`;
 
 const disponibilidade = (estoque: number) => (estoque > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock');
+// Uma Offer por modelo (e não AggregateOffer): é o formato que o Google aceita para listagem de
+// produto com preço no resultado e na aba Shopping.
+const devolucao = {
+  '@type': 'MerchantReturnPolicy', applicableCountry: 'BR', returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+  merchantReturnDays: 7, returnMethod: 'https://schema.org/ReturnByMail', returnFees: 'https://schema.org/FreeReturn',
+};
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: p.titulo,
-  description: resumo(p.descricao, 500),
-  image: miniaturas.slice(0, 5),
-  category: p.categoria,
-  sku: escolhida?.sku,
-  offers: p.variacoes.length > 1 ? {
-    '@type': 'AggregateOffer', priceCurrency: 'BRL', lowPrice: Math.min(...precos), highPrice: Math.max(...precos),
-    offerCount: p.variacoes.length, availability: disponibilidade(comEstoque.length), url,
-  } : {
-    '@type': 'Offer', priceCurrency: 'BRL', price: escolhida?.preco, availability: disponibilidade(escolhida?.estoque ?? 0), url,
-    seller: { '@type': 'Organization', name: LOJA.nome },
-  },
+  '@graph': [
+    {
+      '@type': 'Product',
+      name: p.titulo,
+      description: resumo(p.descricao, 500),
+      image: miniaturas.slice(0, 5),
+      category: p.categoria,
+      sku: escolhida?.sku,
+      offers: p.variacoes.map(v => ({
+        '@type': 'Offer', sku: v.sku, name: v.rotulo || p.titulo, priceCurrency: 'BRL', price: v.preco,
+        availability: disponibilidade(v.estoque), itemCondition: 'https://schema.org/NewCondition', url,
+        seller: { '@type': 'Organization', name: LOJA.nome }, hasMerchantReturnPolicy: devolucao,
+      })),
+    },
+    trilhaJsonLd(LOJA.url, [{ nome: p.categoria, caminho: `/categoria/${categoriaSlug}` }, { nome: p.titulo, caminho: `/produto/${p.slug}` }]),
+  ],
 };
+const gaVer = { currency: 'BRL', value: escolhida?.preco ?? p.preco_a_partir, items: [itemGa({ sku: escolhida?.sku ?? p.slug, titulo: p.titulo, categoria: p.categoria, preco: escolhida?.preco ?? p.preco_a_partir, qtd: 1 })] };
 const textoEstoque = (escolhida?.estoque ?? 0) <= 5 ? `Últimas ${escolhida?.estoque} unidades` : 'Em estoque, pronto para envio';
 const paragrafos = p.descricao.split(/\n{2,}/).map(b => b.split('\n'));
 const limiteFrete = (await configLoja(envDe(Astro)).catch(() => ({ frete_gratis_acima: null }))).frete_gratis_acima;
@@ -163,6 +177,7 @@ try {
     </div>
   )}
   <Trilho id="relacionados" sobrelinha="Continue explorando" titulo="Você também pode gostar" produtos={relacionados} verTodos={{ href: '/produtos' }} />
+  <script is:inline define:vars={{ gaVer }}>window.gtag && window.gtag('event', 'view_item', gaVer);</script>
 </Base>
 
 <style>

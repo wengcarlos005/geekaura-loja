@@ -5,6 +5,8 @@
 // é o que deixa o SDK do Mercado Pago (carregado só quando o comprador escolhe cartão) puxar os
 // arquivos dele sem a gente manter uma lista de domínios que muda sem aviso.
 
+import { GA_DOMINIOS } from './analytics';
+
 const MERCADO_PAGO = {
   script: ['https://sdk.mercadopago.com', 'https://http2.mlstatic.com'],
   connect: ['https://api.mercadopago.com', 'https://api.mercadolibre.com', 'https://events.mercadopago.com'],
@@ -20,12 +22,12 @@ export function gerarNonce(): string {
 export function politica(nonce: string, dev = false): string {
   return [
     `default-src 'self'`,
-    `script-src 'nonce-${nonce}' 'strict-dynamic' 'self' ${MERCADO_PAGO.script.join(' ')}`,
+    `script-src 'nonce-${nonce}' 'strict-dynamic' 'self' ${[...MERCADO_PAGO.script, ...GA_DOMINIOS.script].join(' ')}`,
     // Atributo style é usado pontualmente; folha de estilo vem sempre de arquivo.
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' data: https:`,
     `font-src 'self'`,
-    `connect-src 'self' https://viacep.com.br ${MERCADO_PAGO.connect.join(' ')}${dev ? ' ws: wss:' : ''}`,
+    `connect-src 'self' https://viacep.com.br ${[...MERCADO_PAGO.connect, ...GA_DOMINIOS.connect].join(' ')}${dev ? ' ws: wss:' : ''}`,
     `frame-src ${MERCADO_PAGO.frame.join(' ')}`,
     `object-src 'none'`,
     `base-uri 'self'`,

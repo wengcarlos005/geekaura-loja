@@ -5,6 +5,7 @@ import { codigoDePedidoValido, precoBRL } from '../../lib/formato';
 import { envDe } from '../../lib/api';
 import { configPagamento, modoDemo, pagamento as buscarPagamento, pedido as buscarPedido, type ConfigPagamento, type Pagamento } from '../../lib/ryzo';
 import { LOJA } from '../../lib/loja';
+import { itemGa } from '../../lib/analytics';
 
 const codigo = codigoDePedidoValido(Astro.params.codigo);
 if (!codigo) return Astro.rewrite('/404');
@@ -51,6 +52,12 @@ const MOTIVO_RECUSA: Record<string, string> = {
   cc_rejected_high_risk: 'O pagamento foi recusado pela análise de segurança. Tente outro meio.',
 };
 const fmtData = (iso: string | null) => iso ? new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+// Compra no GA4: só com pagamento aprovado, e uma vez por pedido neste navegador (a página do pedido
+// é revisitada para acompanhar o envio, e cada visita contaria a compra de novo).
+const gaCompra = status === 'pago' ? {
+  transaction_id: pedido.codigo, currency: 'BRL', value: Number((pedido.total - pedido.frete).toFixed(2)), shipping: pedido.frete,
+  items: pedido.itens.map(i => itemGa({ sku: i.sku, titulo: i.titulo, rotulo: i.rotulo, preco: i.preco, qtd: i.qtd })),
+} : null;
 ---
 <Base titulo={`Pedido ${codigo}`} descricao="Acompanhe seu pedido na Geek Aura." noindex>
   <section class="recipiente pedido" data-pedido={codigo} data-status={status} data-acompanhar={status === 'aguardando_pagamento' && pagamento?.status === 'aguardando' || status === 'processando' ? '' : undefined}>
@@ -190,6 +197,14 @@ const fmtData = (iso: string | null) => iso ? new Date(iso).toLocaleString('pt-B
       </aside>
     </div>
   </section>
+  {gaCompra && (
+    <script is:inline define:vars={{ gaCompra }}>
+      try {
+        var chave = 'ga-compra-' + gaCompra.transaction_id;
+        if (window.gtag && !localStorage.getItem(chave)) { window.gtag('event', 'purchase', gaCompra); localStorage.setItem(chave, '1'); }
+      } catch (e) { /* sem localStorage: não mede, para não contar em dobro */ }
+    </script>
+  )}
 </Base>
 <style>
   .pedido { padding-top: 24px; }

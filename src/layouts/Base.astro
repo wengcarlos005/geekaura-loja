@@ -16,6 +16,7 @@ import { catalogo, configLoja, modoDemo } from '../lib/ryzo';
 import { categoriasDoCatalogo, LOJA, type Categoria } from '../lib/loja';
 import { envDe, lerCarrinho } from '../lib/api';
 import { jsonLdSeguro } from '../lib/seo';
+import { idGa } from '../lib/analytics';
 
 interface Props {
   titulo: string;
@@ -30,6 +31,8 @@ interface Props {
 const { titulo, descricao, atual, imagem, noindex = false, jsonLd, busca, tipoOg = 'website' } = Astro.props;
 const env = envDe(Astro);
 const demo = modoDemo(env);
+// Em modo demonstração não mede: pedido simulado viraria compra no relatório.
+const gaId = demo ? null : idGa(env);
 
 let categorias: Categoria[] = [];
 try { categorias = categoriasDoCatalogo(await catalogo(env)); } catch { /* menu sem categorias se o Ryzo cair */ }
@@ -64,6 +67,15 @@ const ogImagem = imagem || new URL('/img/og.png', LOJA.url).href;
     <meta property="og:image" content={ogImagem} />
     <meta name="twitter:card" content="summary_large_image" />
     {jsonLd && <script type="application/ld+json" set:html={jsonLdSeguro(jsonLd)} />}
+    {gaId && <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>}
+    {gaId && (
+      <script is:inline define:vars={{ gaId }}>
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', gaId);
+      </script>
+    )}
     <script is:inline>
       // Animação de entrada: o estado escondido só vale com "anima", e este cronômetro mostra tudo
       // à força se o script de revelação (src/scripts/movimento.ts) não assumir em 2,5 s.
