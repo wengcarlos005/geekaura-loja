@@ -4,6 +4,7 @@ import Foto from '../components/Foto.astro';
 import Simbolo from '../components/Simbolo.astro';
 import { envDe, lerCarrinho } from '../lib/api';
 import { montarCarrinho } from '../lib/carrinhoVisivel';
+import { itemGa } from '../lib/analytics';
 import { precoBRL, UFS } from '../lib/formato';
 import { clienteAtual, lerSessao, listarEnderecos, type Cliente, type Endereco } from '../lib/conta';
 
@@ -12,6 +13,7 @@ if (!itens.length) return Astro.redirect('/carrinho', 303);
 const { linhas, subtotal, ok } = await montarCarrinho(envDe(Astro), itens);
 if (!ok) return Astro.redirect('/carrinho', 303);
 const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
+const gaCheckout = { currency: 'BRL', value: subtotal, items: linhas.map(l => itemGa({ sku: l.sku, titulo: l.titulo, rotulo: l.rotulo, preco: l.preco, qtd: l.qtd })) };
 
 // Logado: dados e endereço principal já vêm preenchidos, e os outros endereços ficam a um toque.
 const sessao = await lerSessao(Astro);
@@ -111,6 +113,7 @@ const cepFmt = (c: string) => `${c.slice(0, 5)}-${c.slice(5)}`;
       </aside>
     </div>
   </section>
+  {linhas.length > 0 && <script is:inline define:vars={{ gaCheckout }}>window.gtag && window.gtag('event', 'begin_checkout', gaCheckout);</script>}
 </Base>
 <style>
   .faixa-conta { background: var(--creme); border: 1px solid var(--creme-escuro); border-radius: var(--r-card); padding: 12px 14px; font-size: 14px; margin-bottom: 16px; }

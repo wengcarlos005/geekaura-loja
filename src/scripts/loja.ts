@@ -176,6 +176,7 @@ document.addEventListener('submit', async e => {
   try {
     const r = await mexerNoCarrinho({ acao: 'adicionar', sku, qtd: Number(dados.get('qtd') || 1) });
     if (r.ok) {
+      window.gtag?.('event', 'add_to_cart', { currency: 'BRL', items: [{ item_id: String(sku), quantity: Number(dados.get('qtd') || 1) }] });
       botao?.classList.add('adicionado');
       setTimeout(() => botao?.classList.remove('adicionado'), 1600);
       abrirGaveta(true);

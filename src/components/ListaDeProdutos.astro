@@ -2,8 +2,8 @@
 // Página de listagem (categoria e busca): título, contagem, ordenação e grade.
 import CardProduto from './CardProduto.astro';
 import type { ProdutoResumo } from '../lib/ryzo';
-interface Props { titulo: string; subtitulo?: string; produtos: ProdutoResumo[]; ordem: string; vazio: string; }
-const { titulo, subtitulo, produtos, ordem, vazio } = Astro.props;
+interface Props { titulo: string; subtitulo?: string; produtos: ProdutoResumo[]; ordem: string; vazio: string; sobre?: string; }
+const { titulo, subtitulo, produtos, ordem, vazio, sobre } = Astro.props;
 const ordens = [
   { valor: '', nome: 'Destaques' },
   { valor: 'menor', nome: 'Menor preço' },
@@ -37,9 +37,11 @@ const params = new URLSearchParams(Astro.url.search);
       <a class="botao botao-primario" href="/">Ver todos os produtos</a>
     </div>
   )}
+  {sobre && <p class="lista-sobre">{sobre}</p>}
 </section>
 <style>
   .lista-cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 24px 0 20px; }
+  .lista-sobre { max-width: 760px; margin: 32px 0 0; padding-top: 20px; border-top: 1px solid var(--cinza-2); font-size: 14.5px; line-height: 1.6; color: var(--texto-suave); }
   .lista h1 { font-size: 30px; font-weight: 700; }
   @media (min-width: 768px) { .lista h1 { font-size: 38px; } }
   .ordenar { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; }
