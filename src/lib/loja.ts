@@ -13,6 +13,7 @@ export const LOJA = {
   whatsappLink: 'https://wa.me/5521969514829',
   prazoPostagem: 'até 2 dias úteis após a confirmação do pagamento',
   notaShopee: '4,81',
+  bordao: 'Onde a Magia Geek Vive',
 } as const;
 
 export interface Categoria { nome: string; slug: string; }
