@@ -9,7 +9,9 @@
   "vars": {
     // Ryzo de produção. Para testar contra o staging: https://ryzo-staging.wengcarlos005.workers.dev
     // (aqui, não no painel: a publicação pelo GitHub sobrescreve variável que só existe no painel).
-    "RYZO_URL": "https://ryzoseller.com.br"
+    "RYZO_URL": "https://ryzoseller.com.br",
+    // Google Analytics 4 (propriedade Geek Aura). O ID de medicao e publico: vai no HTML de toda pagina.
+    "GA_ID": "G-2H2X40LSK9"
   }
   // Segredos (nunca aqui): wrangler secret put RYZO_VITRINE_KEY / CART_SECRET
 }
