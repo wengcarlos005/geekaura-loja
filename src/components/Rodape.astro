@@ -4,10 +4,12 @@
 import Simbolo from './Simbolo.astro';
 import type { Categoria } from '../lib/loja';
 import { LOJA } from '../lib/loja';
+import { PRESENTES } from '../lib/presentes';
 interface Props { categorias: Categoria[]; }
 const { categorias } = Astro.props;
 const grupos = [
   { titulo: 'Comprar', links: [{ href: '/produtos', nome: 'Todos os produtos' }, ...categorias.map(c => ({ href: `/categoria/${c.slug}`, nome: c.nome }))] },
+  { titulo: 'Presentes', links: PRESENTES.map(p => ({ href: `/presentes/${p.slug}`, nome: p.nome })) },
   { titulo: 'Ajuda', links: [
     { href: '/conta', nome: 'Minha conta' }, { href: '/pedido', nome: 'Rastrear pedido' }, { href: '/ajuda', nome: 'Dúvidas frequentes' },
     { href: '/frete-e-prazos', nome: 'Frete e prazos' }, { href: '/trocas-e-devolucoes', nome: 'Trocas e devoluções' }, { href: '/contato', nome: 'Fale com a gente' },

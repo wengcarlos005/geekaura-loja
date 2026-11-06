@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { catalogo } from '../lib/ryzo';
 import { envDe } from '../lib/api';
 import { categoriasDoCatalogo, LOJA } from '../lib/loja';
+import { presentesComProdutos } from '../lib/presentes';
 
 const escapar = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -9,6 +10,7 @@ export const GET: APIRoute = async ctx => {
   const produtos = await catalogo(envDe(ctx)).catch(() => []);
   const caminhos = [
     '/', ...categoriasDoCatalogo(produtos).map(c => `/categoria/${c.slug}`),
+    '/presentes', ...presentesComProdutos(produtos).map(p => `/presentes/${p.slug}`),
     ...produtos.map(p => `/produto/${p.slug}`),
     '/sobre', '/contato', '/ajuda', '/frete-e-prazos', '/trocas-e-devolucoes', '/privacidade', '/termos',
   ];

@@ -1,0 +1,48 @@
+---
+import Base from '../../layouts/Base.astro';
+import Foto from '../../components/Foto.astro';
+import { catalogo } from '../../lib/ryzo';
+import { envDe } from '../../lib/api';
+import { LOJA } from '../../lib/loja';
+import { presentesComProdutos, produtosDoPresente } from '../../lib/presentes';
+import { trilhaJsonLd } from '../../lib/seoCategorias';
+
+const todos = await catalogo(envDe(Astro)).catch(() => []);
+// Cada card com uma capa diferente: o mais barato está em quase todas as seleções e repetiria a foto.
+const usadas = new Set<string>();
+const paginas = presentesComProdutos(todos).map(p => {
+  const lista = produtosDoPresente(p, todos);
+  const capa = lista.find(x => !usadas.has(x.slug)) ?? lista[0];
+  if (capa) usadas.add(capa.slug);
+  return { ...p, qtd: lista.length, foto: capa?.fotos[0] ?? null };
+});
+const jsonLd = { '@context': 'https://schema.org', ...trilhaJsonLd(LOJA.url, [{ nome: 'Presentes', caminho: '/presentes' }]) };
+---
+<Base titulo="Ideias de presente geek: amigo secreto, Natal e família" descricao="Ideias de presente geek por faixa de preço e ocasião: amigo secreto até R$ 30 e R$ 50, presentes de Natal e jogos para a família." atual="presentes" jsonLd={jsonLd}>
+  <section class="recipiente presentes">
+    <h1>Ideias de presente</h1>
+    <p class="nota">Escolha pela ocasião ou pelo quanto quer gastar.</p>
+    <div class="presentes-grade">
+      {paginas.map(p => (
+        <a class="presente-card" href={`/presentes/${p.slug}`}>
+          <span class="presente-foto"><Foto src={p.foto} alt="" nome={p.nome} tamanho={300} /></span>
+          <span class="presente-nome">{p.nome}</span>
+          <span class="presente-qtd">{p.qtd} {p.qtd === 1 ? 'presente' : 'presentes'}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .presentes { padding: 24px 0 8px; }
+  .presentes h1 { font-size: 30px; font-weight: 700; }
+  @media (min-width: 768px) { .presentes h1 { font-size: 38px; } }
+  .presentes-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+  @media (min-width: 900px) { .presentes-grade { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; } }
+  .presente-card { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--cinza-2); border-radius: 14px; background: var(--branco); text-decoration: none; transition: border-color .15s, transform .2s; }
+  .presente-card:hover { border-color: var(--abobora); transform: translateY(-2px); color: var(--noite); }
+  .presente-foto { aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--cinza-1); }
+  .presente-nome { font-family: var(--fonte-titulo); font-weight: 600; font-size: 17px; line-height: 1.15; margin-top: 6px; }
+  .presente-qtd { font-size: 12.5px; color: var(--texto-suave); }
+</style>
