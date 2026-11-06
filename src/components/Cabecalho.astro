@@ -57,7 +57,8 @@ const valorFrete = freteGratisAcima ? precoBRL(freteGratisAcima).replace(',00', 
     <nav class="categorias" aria-label="Categorias">
       <a href="/produtos" aria-current={atual === 'produtos' ? 'page' : undefined}>Todos os produtos</a>
       {categorias.map(c => <a href={`/categoria/${c.slug}`} aria-current={atual === c.slug ? 'page' : undefined}>{c.nome}</a>)}
-      <a href="/produtos?faixa=ate-30" class="cat-destaque">Até R$ 30</a>
+      <a href="/presentes" class="cat-destaque" aria-current={atual === 'presentes' ? 'page' : undefined}>Presentes</a>
+      <a href="/presentes/amigo-secreto-ate-30" class="cat-destaque">Até R$ 30</a>
     </nav>
   </div>
 </header>

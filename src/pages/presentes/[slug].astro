@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import ListaDeProdutos from '../../components/ListaDeProdutos.astro';
+import { catalogo } from '../../lib/ryzo';
+import { envDe } from '../../lib/api';
+import { LOJA } from '../../lib/loja';
+import { ordenar } from '../../lib/listagem';
+import { PRESENTES, produtosDoPresente } from '../../lib/presentes';
+import { trilhaJsonLd } from '../../lib/seoCategorias';
+
+const pagina = PRESENTES.find(p => p.slug === Astro.params.slug);
+if (!pagina) return Astro.rewrite('/404');
+const produtos = produtosDoPresente(pagina, await catalogo(envDe(Astro)).catch(() => []));
+const ordemBruta = Astro.url.searchParams.get('ordem');
+const ordem = ordemBruta === 'menor' || ordemBruta === 'maior' ? ordemBruta : '';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  ...trilhaJsonLd(LOJA.url, [{ nome: 'Presentes', caminho: '/presentes' }, { nome: pagina.nome, caminho: `/presentes/${pagina.slug}` }]),
+};
+const outras = PRESENTES.filter(p => p.slug !== pagina.slug);
+---
+<Base titulo={pagina.titulo} descricao={pagina.descricao} atual="presentes" jsonLd={jsonLd} noindex={produtos.length === 0}>
+  <ListaDeProdutos titulo={pagina.h1} subtitulo={`${produtos.length} ${produtos.length === 1 ? 'presente' : 'presentes'} com estoque`}
+    produtos={ordenar(produtos, ordem)} ordem={ordem} vazio="Nenhum presente nesta seleção agora." sobre={pagina.texto} />
+  <nav class="recipiente outras-selecoes" aria-label="Outras seleções de presente">
+    <p class="sobrelinha">Mais ideias</p>
+    <div>{outras.map(o => <a class="chip-presente" href={`/presentes/${o.slug}`}>{o.nome}</a>)}</div>
+  </nav>
+</Base>
+
+<style>
+  .outras-selecoes { padding-top: 24px; }
+  .outras-selecoes div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip-presente { border: 1px solid var(--cinza-2); border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 500; text-decoration: none; background: var(--branco); }
+  .chip-presente:hover { border-color: var(--abobora); color: var(--noite); }
+</style>
