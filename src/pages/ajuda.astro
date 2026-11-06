@@ -14,7 +14,7 @@ const limiteFrete = (await configLoja(envDe(Astro)).catch(() => ({ frete_gratis_
 const grupos = [
   { titulo: 'Pedido e entrega', itens: [
     { p: 'Em quanto tempo vocês postam?', r: `Postamos ${LOJA.prazoPostagem}. No Pix e no cartão a confirmação costuma ser imediata; no boleto leva até 3 dias úteis.` },
-    { p: 'Como acompanho meu pedido?', r: 'Em Minha conta, se você comprou logado, ou em Acompanhar pedido com o código SITE- que chega no e-mail. O código de rastreio aparece lá assim que o pacote é postado.' },
+    { p: 'Como acompanho meu pedido?', r: 'Em Minha conta, se você comprou logado, ou em Acompanhar pedido com o número que chega no e-mail. O código de rastreio aparece lá assim que o pacote é postado.' },
     { p: 'Quanto custa o frete?', r: 'Depende do CEP, do peso e do tamanho da caixa. Você vê o valor e o prazo na página do produto, digitando o CEP, e escolhe a opção antes de pagar.' },
     ...(limiteFrete ? [{ p: 'Tem frete grátis?', r: `Tem: em compras a partir de ${precoBRL(limiteFrete)} em produtos, a opção de frete mais econômica sai de graça, e as mais rápidas custam só a diferença. O carrinho mostra quanto falta.` }] : []),
     { p: 'Vocês entregam no Brasil todo?', r: 'Sim, pelos Correios e por transportadoras parceiras. As opções disponíveis para o seu CEP aparecem no fechamento do pedido.' },

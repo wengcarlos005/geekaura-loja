@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cepValido, codigoDePedidoValido, cpfValido, emailValido, precoBRL, slugificar, telefoneValido, ufValida } from '../src/lib/formato';
+import { cepValido, codigoDePedidoValido, codigoVisivel, cpfValido, emailValido, precoBRL, slugificar, telefoneValido, ufValida } from '../src/lib/formato';
 
 describe('precoBRL', () => {
   it('formata em reais com vírgula e milhar', () => {
@@ -61,5 +61,10 @@ describe('outros campos', () => {
     expect(codigoDePedidoValido('site-abc123')).toBe('SITE-ABC123');
     expect(codigoDePedidoValido('SITE-ab')).toBeNull();
     expect(codigoDePedidoValido('SITE-ABC123/../x')).toBeNull();
+    // Código curto (como o cliente vê) e com # na frente viram o formato do Ryzo.
+    expect(codigoDePedidoValido('abc123')).toBe('SITE-ABC123');
+    expect(codigoDePedidoValido('#3486SVZS79')).toBe('SITE-3486SVZS79');
+    expect(codigoDePedidoValido('abc')).toBeNull();
+    expect(codigoVisivel('SITE-3486SVZS79')).toBe('3486SVZS79');
   });
 });

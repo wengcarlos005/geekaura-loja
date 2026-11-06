@@ -4,7 +4,7 @@ import PainelConta from '../../components/PainelConta.astro';
 import Simbolo from '../../components/Simbolo.astro';
 import { clienteAtual, gravarSessao, lerSessao, pedidosDoCliente } from '../../lib/conta';
 import { envDe } from '../../lib/api';
-import { precoBRL } from '../../lib/formato';
+import { codigoVisivel, precoBRL } from '../../lib/formato';
 import { dataCurta, STATUS_PEDIDO } from '../../lib/statusPedido';
 import type { Pedido } from '../../lib/ryzo';
 
@@ -57,9 +57,9 @@ const nome = cliente?.nome ?? sessao.n;
           const qtd = p.itens.reduce((s, i) => s + i.qtd, 0);
           return (
             <li data-revelar>
-              <a class="pedido-card" href={`/pedido/${p.codigo}`}>
+              <a class="pedido-card" href={`/pedido/${codigoVisivel(p.codigo)}`}>
                 <span class="pc-topo">
-                  <span class="pc-codigo">{p.codigo}</span>
+                  <span class="pc-codigo">#{codigoVisivel(p.codigo)}</span>
                   <span class:list={['status', st.classe]}>{st.rotulo}</span>
                 </span>
                 <span class="pc-itens">{p.itens.slice(0, 2).map(i => `${i.qtd}× ${i.titulo}${i.rotulo ? ` (${i.rotulo})` : ''}`).join(' · ')}{p.itens.length > 2 && ` e mais ${p.itens.length - 2}`}</span>
