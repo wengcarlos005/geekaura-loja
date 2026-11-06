@@ -300,7 +300,7 @@ const cepFmt = (c: string) => `${c.slice(0, 5)}-${c.slice(5)}`;
       }
       // O pagador do Mercado Pago é o mesmo comprador: guardado só nesta aba, para o próximo passo.
       try { sessionStorage.setItem(`ga_pagador_${d.codigo}`, JSON.stringify({ nome: entrega.nome, email: entrega.email, cpf: somenteDigitos(entrega.cpf) })); } catch { /* aba anônima */ }
-      location.href = `/pedido/${d.codigo}`;
+      location.href = `/pedido/${String(d.codigo).replace(/^SITE-/, '')}`;
     } catch {
       mostrarErro('Sem conexão. Confira a internet e tente de novo.');
       botao.disabled = false; botao.textContent = 'Continuar para o pagamento';

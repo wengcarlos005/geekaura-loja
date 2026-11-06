@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Simbolo from '../../components/Simbolo.astro';
-import { codigoDePedidoValido, precoBRL } from '../../lib/formato';
+import { codigoDePedidoValido, codigoVisivel, precoBRL } from '../../lib/formato';
 import { envDe } from '../../lib/api';
 import { configPagamento, modoDemo, pagamento as buscarPagamento, pedido as buscarPedido, type ConfigPagamento, type Pagamento } from '../../lib/ryzo';
 import { LOJA } from '../../lib/loja';
@@ -58,13 +58,14 @@ const gaCompra = status === 'pago' ? {
   transaction_id: pedido.codigo, currency: 'BRL', value: Number((pedido.total - pedido.frete).toFixed(2)), shipping: pedido.frete,
   items: pedido.itens.map(i => itemGa({ sku: i.sku, titulo: i.titulo, rotulo: i.rotulo, preco: i.preco, qtd: i.qtd })),
 } : null;
+const numero = codigoVisivel(codigo);
 ---
-<Base titulo={`Pedido ${codigo}`} descricao="Acompanhe seu pedido na Geek Aura." noindex>
+<Base titulo={`Pedido #${numero}`} descricao="Acompanhe seu pedido na Geek Aura." noindex>
   <section class="recipiente pedido" data-pedido={codigo} data-status={status} data-acompanhar={status === 'aguardando_pagamento' && pagamento?.status === 'aguardando' || status === 'processando' ? '' : undefined}>
     <div class="pedido-cabeca">
       <div>
         <p class="sobrelinha">Pedido</p>
-        <h1>{codigo}</h1>
+        <h1>Pedido #{numero}</h1>
       </div>
       <span class:list={['estado', `estado-${status}`]}>{ROTULO[status] ?? status}</span>
     </div>
@@ -82,7 +83,7 @@ const gaCompra = status === 'pago' ? {
           </div>
         )}
         {status === 'processando' && <div class="aviso aviso-info bloco"><strong>Estamos confirmando o seu pagamento.</strong><p>Esta página atualiza sozinha.</p></div>}
-        {status === 'sem_estoque' && <div class="aviso aviso-erro bloco"><strong>Um item acabou antes da confirmação do pagamento.</strong><p>O valor será devolvido pelo Mercado Pago. Se preferir trocar por outro produto, escreva para <a href={`mailto:${LOJA.email}?subject=Pedido ${codigo}`}>{LOJA.email}</a>.</p></div>}
+        {status === 'sem_estoque' && <div class="aviso aviso-erro bloco"><strong>Um item acabou antes da confirmação do pagamento.</strong><p>O valor será devolvido pelo Mercado Pago. Se preferir trocar por outro produto, escreva para <a href={`mailto:${LOJA.email}?subject=Pedido ${numero}`}>{LOJA.email}</a>.</p></div>}
         {status === 'cancelado' && <div class="aviso aviso-info bloco"><strong>Este pedido foi cancelado.</strong><p>Se foi engano, é só fazer um pedido novo. Dúvidas: {LOJA.email}.</p></div>}
 
         {pix && (
@@ -193,7 +194,7 @@ const gaCompra = status === 'pago' ? {
         <div class="linha-total"><span>Produtos</span><span>{precoBRL(subtotal)}</span></div>
         <div class="linha-total"><span>Frete</span><span>{precoBRL(pedido.frete)}</span></div>
         <div class="linha-total grande"><span>Total</span><span>{precoBRL(pedido.total)}</span></div>
-        <p class="nota">Guarde o código {codigo} para acompanhar o pedido. Dúvidas: <a href="/ajuda">perguntas frequentes</a> ou <a href={`mailto:${LOJA.email}?subject=Pedido ${codigo}`}>{LOJA.email}</a>.</p>
+        <p class="nota">Guarde o número #{numero} para acompanhar o pedido. Dúvidas: <a href="/ajuda">perguntas frequentes</a> ou <a href={`mailto:${LOJA.email}?subject=Pedido ${numero}`}>{LOJA.email}</a>.</p>
       </aside>
     </div>
   </section>

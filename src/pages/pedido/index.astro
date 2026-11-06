@@ -1,24 +1,24 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { codigoDePedidoValido } from '../../lib/formato';
+import { codigoDePedidoValido, codigoVisivel } from '../../lib/formato';
 import { LOJA } from '../../lib/loja';
 
 const bruto = Astro.url.searchParams.get('codigo');
 const codigo = codigoDePedidoValido(bruto);
-if (codigo) return Astro.redirect(`/pedido/${codigo}`, 303);
+if (codigo) return Astro.redirect(`/pedido/${codigoVisivel(codigo)}`, 303);
 const errado = bruto !== null;
 ---
 <Base titulo="Acompanhar pedido" descricao="Acompanhe o pagamento e a entrega do seu pedido na Geek Aura.">
   <section class="recipiente acompanhar">
     <img src="/img/auri-320.webp" width="140" height="140" alt="" />
     <h1>Acompanhar pedido</h1>
-    <p>Digite o código que mandamos no e-mail de confirmação. Ele começa com SITE-.</p>
+    <p>Digite o número do pedido que mandamos no e-mail de confirmação.</p>
     <form method="get" action="/pedido" class="form-codigo">
       <div class="campo">
         <label for="codigo">Código do pedido</label>
-        <input id="codigo" name="codigo" required maxlength="25" placeholder="SITE-XXXXXXXXXX" autocapitalize="characters" value={bruto ?? ''} aria-invalid={errado ? 'true' : undefined} aria-describedby={errado ? 'codigo-erro' : undefined} />
+        <input id="codigo" name="codigo" required maxlength="25" placeholder="Ex.: 3486SVZS79" autocapitalize="characters" value={bruto ?? ''} aria-invalid={errado ? 'true' : undefined} aria-describedby={errado ? 'codigo-erro' : undefined} />
       </div>
-      {errado && <p class="aviso aviso-erro" id="codigo-erro">Esse código não parece certo. Confira no e-mail: SITE- seguido de letras e números.</p>}
+      {errado && <p class="aviso aviso-erro" id="codigo-erro">Esse número não parece certo. Confira no e-mail: são letras e números, sem espaço.</p>}
       <button class="botao botao-escuro botao-largo" type="submit">Ver pedido</button>
     </form>
     <p class="nota">Não achou o código? Se você comprou com a sua conta, ele está em <a href="/conta">Minha conta</a>. Se não, procure no e-mail de confirmação ou escreva para <a href={`mailto:${LOJA.email}`}>{LOJA.email}</a>.</p>

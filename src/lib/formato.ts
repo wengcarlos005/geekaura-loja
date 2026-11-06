@@ -69,8 +69,17 @@ export function ufValida(v: unknown): string | null {
   return (UFS as readonly string[]).includes(s) ? s : null;
 }
 
-/** "SITE-" + 6 a 20 caracteres, igual ao formato que o Ryzo aceita nas rotas. */
+/**
+ * Código do pedido no formato do Ryzo ("SITE-" + 6 a 20 caracteres). Aceita também o código curto,
+ * sem o prefixo, e com "#" na frente: é como ele aparece para o cliente (e-mail, conta, link).
+ */
 export function codigoDePedidoValido(v: unknown): string | null {
-  const s = String(v ?? '').trim().toUpperCase();
-  return /^SITE-[A-Z0-9]{6,20}$/.test(s) ? s : null;
+  const s = String(v ?? '').trim().toUpperCase().replace(/^#/, '');
+  const curto = s.startsWith('SITE-') ? s.slice(5) : s;
+  return /^[A-Z0-9]{6,20}$/.test(curto) ? 'SITE-' + curto : null;
+}
+
+/** Código como o cliente vê: sem o "SITE-", que é detalhe interno do Ryzo. */
+export function codigoVisivel(codigo: string): string {
+  return codigo.replace(/^SITE-/, '');
 }
