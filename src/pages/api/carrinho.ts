@@ -5,6 +5,7 @@ import { aplicar, lerOperacao } from '../../lib/carrinho';
 import { envDe, erro, falha, gravarCarrinho, json, lerCarrinho, lerJson, limitar, origemValida } from '../../lib/api';
 import { catalogo, configLoja } from '../../lib/ryzo';
 import { montarCarrinho } from '../../lib/carrinhoVisivel';
+import { contar } from '../../lib/metricas';
 
 /** GET /api/carrinho — linhas do carrinho para a gaveta lateral (nome, foto, preço e estoque de hoje). */
 export const GET: APIRoute = async ctx => {
@@ -55,6 +56,7 @@ export const POST: APIRoute = async ctx => {
     }
 
     await gravarCarrinho(ctx, novo);
+    if (op.acao === 'adicionar') contar(ctx, ['carrinho']);
     return responder(json({ ok: true, qtd: novo.reduce((s, i) => s + i.qtd, 0), itens: novo }));
   } catch (e) {
     if (e instanceof Response) return responder(e);
