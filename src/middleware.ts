@@ -1,6 +1,7 @@
 // Cabeçalhos de segurança em toda resposta e CSP com nonce em toda página (ver src/lib/seguranca.ts).
 import { defineMiddleware } from 'astro:middleware';
 import { CABECALHOS_FIXOS, carimbarNonce, gerarNonce, politica } from './lib/seguranca';
+import { COOKIE_VISITA, contar, diaBR, type EventoDoSite } from './lib/metricas';
 
 const SEM_CACHE = /^\/(carrinho|checkout|pedido|api|conta|entrar|cadastro|recuperar-senha|favoritos)(\/|$)/;
 
@@ -18,6 +19,18 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     return new Response(resposta.body, { status: resposta.status, statusText: resposta.statusText, headers });
   }
   headers.set('Content-Security-Policy', politica(nonce, import.meta.env.DEV));
+  // Indicadores do Ryzo: página vista em toda página que abriu de verdade; visitante uma vez por
+  // dia, marcado por um cookie só com a data (nenhum dado da pessoa).
+  if (ctx.request.method === 'GET' && resposta.status === 200) {
+    const eventos: EventoDoSite[] = ['visualizacao'];
+    if (ctx.url.pathname.startsWith('/produto/')) eventos.push('produto_visto');
+    const hoje = diaBR();
+    if (ctx.cookies.get(COOKIE_VISITA)?.value !== hoje) {
+      eventos.push('visitante');
+      headers.append('Set-Cookie', `${COOKIE_VISITA}=${hoje}; Path=/; Max-Age=172800; SameSite=Lax; Secure; HttpOnly`);
+    }
+    contar(ctx, eventos);
+  }
   headers.delete('content-length');
   const html = carimbarNonce(await resposta.text(), nonce);
   return new Response(html, { status: resposta.status, statusText: resposta.statusText, headers });

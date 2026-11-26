@@ -4,6 +4,7 @@ import Foto from '../components/Foto.astro';
 import Simbolo from '../components/Simbolo.astro';
 import { envDe, lerCarrinho } from '../lib/api';
 import { montarCarrinho } from '../lib/carrinhoVisivel';
+import { contar } from '../lib/metricas';
 import { itemGa } from '../lib/analytics';
 import { precoBRL, UFS } from '../lib/formato';
 import { clienteAtual, lerSessao, listarEnderecos, type Cliente, type Endereco } from '../lib/conta';
@@ -13,6 +14,7 @@ if (!itens.length) return Astro.redirect('/carrinho', 303);
 const { linhas, subtotal, ok } = await montarCarrinho(envDe(Astro), itens);
 if (!ok) return Astro.redirect('/carrinho', 303);
 const qtdTotal = linhas.reduce((s, l) => s + l.qtd, 0);
+if (linhas.length) contar(Astro, ['checkout']);
 const gaCheckout = { currency: 'BRL', value: subtotal, items: linhas.map(l => itemGa({ sku: l.sku, titulo: l.titulo, rotulo: l.rotulo, preco: l.preco, qtd: l.qtd })) };
 
 // Logado: dados e endereço principal já vêm preenchidos, e os outros endereços ficam a um toque.
