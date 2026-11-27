@@ -77,6 +77,12 @@ npm run deploy        # astro build && wrangler deploy
 
 Antes do primeiro deploy de produção, troque `RYZO_URL` no `wrangler.jsonc` para o Ryzo de produção.
 
+Sem Node instalado, a publicação é feita pelo **Workers Builds** da Cloudflare: Worker
+`geekaura-loja` → Settings → Build, repositório `wengcarlos005/geekaura-loja`, build command
+`npm run build`, deploy command `npx wrangler deploy`. A **Production branch tem que ser `main`**:
+cada Pull Request juntado na `main` publica o site sozinho. Os branches `claude/...` são de
+trabalho e não devem ser escolhidos ali.
+
 ### Domínio geekaura.com.br
 
 O domínio está registrado no Registro.br. Para servir o Worker nele:
