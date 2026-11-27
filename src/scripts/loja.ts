@@ -4,6 +4,25 @@ import './movimento';
 import { precoBRL } from '../lib/formato';
 import { faltaParaFreteGratis } from '../lib/freteGratis';
 
+// ---------- Indicadores do Ryzo ----------
+// A visita é contada daqui, depois que a página abriu e ficou 1,5 s visível: robô que só baixa o
+// HTML não roda este script, e pré-carregamento de aba escondida não conta (ver /api/visita).
+(function contarVisita() {
+  let feito = false;
+  const enviar = () => {
+    if (feito) return;
+    feito = true;
+    try { navigator.sendBeacon('/api/visita', JSON.stringify({ produto: location.pathname.startsWith('/produto/') })); } catch { /* sem beacon: não conta */ }
+  };
+  const quandoVisivel = () => {
+    if (document.visibilityState !== 'visible') return;
+    document.removeEventListener('visibilitychange', quandoVisivel);
+    setTimeout(() => { if (document.visibilityState === 'visible') enviar(); else document.addEventListener('visibilitychange', quandoVisivel); }, 1500);
+  };
+  document.addEventListener('visibilitychange', quandoVisivel);
+  quandoVisivel();
+})();
+
 for (const img of document.querySelectorAll<HTMLImageElement>('.foto img')) {
   if (img.complete && img.naturalWidth === 0) img.parentElement?.classList.add('falhou');
 }
